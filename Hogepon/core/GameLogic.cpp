@@ -240,7 +240,11 @@ void GameLogic::doSeriagari()
 		}
 
 		if (m_State.SeriagariCount() >= m_FieldSetting.SeriagariCountMax()) {
+            // せりあがり実施
 			m_PanelContainer.NewLine();
+            if (m_Cursor.cy <= m_PanelContainer.FieldTop()) {
+                m_Cursor.cy += 1;
+            }
 			m_State.SetSeriagariCount(0);
 		}
 	}
@@ -367,10 +371,10 @@ void GameLogic::deletePanel()
 
 void GameLogic::changeState_PanelsDeleting()
 {
-	int delete_panel_count = countDeleteMarkPanel();
+	int delete_panel_num = countDeleteMarkPanel();
 	int delete_wait_per_panel = m_FieldSetting.WaitTimePanelDel();
-	int delete_time_max = delete_wait_per_panel * delete_panel_count;
-	int delete_time = 0;
+    int delete_time_max = delete_wait_per_panel * delete_panel_num;
+    int delete_panel_cnt = 0;
 
 	bool is_chain = false;
 
@@ -379,12 +383,12 @@ void GameLogic::changeState_PanelsDeleting()
 			Panel& panel = m_PanelContainer.GetPanel(x, y);
 
 			if (panel.is_mark_delete) {
-				delete_time += delete_wait_per_panel;
+                ++delete_panel_cnt;
 
 				panel.state = Panel::STATE_DELETE_BEFORE_WAIT;
 				panel.delete_before_wait = 0;
-				panel.delete_wait = delete_time;
-				panel.delete_after_wait = delete_time_max - delete_time;
+                panel.delete_wait = delete_wait_per_panel * delete_panel_cnt;
+                panel.delete_after_wait = delete_time_max - panel.delete_wait + 1;
 
 				if (panel.is_chain_seed) {
 					is_chain = true;
@@ -393,8 +397,8 @@ void GameLogic::changeState_PanelsDeleting()
 		}
 	}
 
-	if (delete_panel_count >= 3) {
-		m_State.Doujikeshi(delete_panel_count);
+	if (delete_panel_num >= 3) {
+		m_State.Doujikeshi(delete_panel_num);
 	}
 	if (is_chain) {
 		m_State.IncChainCount();
@@ -528,7 +532,7 @@ void GameLogic::update_PanelFalling(int x, int y, Panel& panel)
 
 void GameLogic::update_PanelFallAfterWait(int x, int y, Panel& panel)
 {
-	panel.fall_after_wait += m_FieldSetting.IncFallAfterWait();
+    panel.fall_after_wait += m_FieldSetting.IncFallAfterWait();
 
 	Panel& under_panel = m_PanelContainer.GetUnderPanel(x, y);
 

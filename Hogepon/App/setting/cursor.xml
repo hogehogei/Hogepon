@@ -1,0 +1,13 @@
+<Cursor>
+  <SubTextures>
+    <FileName>image/cursor.png</FileName>
+    <SubTexCoords
+      Identifier="Cursor"
+      X="0"
+      Y="0"
+      Width="94"
+      Height="54"
+    ></SubTexCoords>
+  </SubTextures>
+</Cursor>
+

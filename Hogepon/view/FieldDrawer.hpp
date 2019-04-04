@@ -1,5 +1,6 @@
 #pragma once
 
+#include "util/SubTextures.hpp"
 #include "core/GameLogic.hpp"
 #include "view/PanelDrawer2D.hpp"
 
@@ -17,4 +18,5 @@ private:
 	void drawCursor(const GameLogic& gamelogic);
 
 	PanelDrawer2D m_PanelDrawer2D;
+    SubTextures   m_CursorTexture;
 };
