@@ -427,6 +427,7 @@ int GameLogic::countDeleteMarkPanel()
 void GameLogic::update_PanelDefault(int x, int y, Panel& panel)
 {
 	const Panel& under_panel = m_PanelContainer.GetUnderPanel(x, y);
+    // 下の空白が交換中、もしくは消去後ウェイト以外なら落下
 	if (under_panel.type == Panel::TYPE_SPACE &&
 		under_panel.state != Panel::STATE_SWAPPING &&
         under_panel.state != Panel::STATE_DELETE_AFTER_WAIT) {
@@ -476,6 +477,7 @@ void GameLogic::update_PanelFallBeforeWait(int x, int y, Panel& panel)
 
 	// パネル解凍直後は下がスペースでないこともありえるのでチェック
 	if (panel.fall_before_wait >= m_FieldSetting.FallBeforeWaitMax()) {
+        // 下の空白が消去後ウェイト以外なら落下
 		if (under_panel.type == Panel::TYPE_SPACE && under_panel.state != Panel::STATE_DELETE_AFTER_WAIT) {
 			panel.fall_before_wait = 0;
 			panel.state = Panel::STATE_FALLING;
@@ -498,6 +500,7 @@ void GameLogic::update_PanelFalling(int x, int y, Panel& panel)
 		panel.move_from = PanelPos(0, 0);
 
 		Panel& under_panel = m_PanelContainer.GetUnderPanel(x, y);
+        // 下の空白が消去後ウェイト以外なら落下
 		if (under_panel.type == Panel::TYPE_SPACE && under_panel.state != Panel::STATE_DELETE_AFTER_WAIT) {
 			panel.state = Panel::STATE_FALLING;
 			panel.move_from = PanelPos(0, 1);
@@ -516,7 +519,7 @@ void GameLogic::update_PanelFalling(int x, int y, Panel& panel)
 			if (check.type == Panel::TYPE_SPACE) {
 				under_panel.is_chain_seed = panel.is_chain_seed;
 				// 滑り込ませ連鎖できるか？
-				if (under_panel.swapping_count >= m_FieldSetting.SwappingCountMax() ) {
+				if (under_panel.swapping_count == (m_FieldSetting.SwappingCountMax() - 1) ) {
 					// STATE_FALL_AFTER_WAIT に切り替えることで
 					// パネルが消せるようにする
 					panel.state = Panel::STATE_FALL_AFTER_WAIT;
@@ -575,6 +578,8 @@ void GameLogic::update_PanelDelete(Panel& panel)
 
 void GameLogic::update_PanelDeleteAfterWait(int x, int y, Panel& panel)
 {
+    // 消去したパネルの空白に対して、パネルを交換して滑り込ませて連鎖する技をスムーズにするため
+    // パネルをスペースに設定しなおして、表示はせず交換できる状態にしておく
     panel.type  = Panel::TYPE_SPACE;
     panel.color = Panel::COLOR_NONE;
 	panel.delete_after_wait -= m_FieldSetting.DecPanelDeleteAfterWait();
@@ -582,7 +587,7 @@ void GameLogic::update_PanelDeleteAfterWait(int x, int y, Panel& panel)
 	if (panel.delete_after_wait <= 0 ) {
 		panel.reset();
 		panel.state = Panel::STATE_NONE;
-		// todo : 上のパネルに連鎖フラグを立てる
+		// 上のパネルに連鎖フラグを立てる
 		setChainFlag(PanelPos(x, y));
 	}
 }
