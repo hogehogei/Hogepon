@@ -19,4 +19,5 @@ private:
 
 	PanelDrawer2D m_PanelDrawer2D;
     SubTextures   m_CursorTexture;
+    s3d::Texture  m_FrameTexture;
 };

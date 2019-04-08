@@ -158,8 +158,8 @@ bool GameLogic::swapPanel()
 	// 交換できるパネルか？
 	bool isValidTypeLeft = left.type == Panel::TYPE_PANEL || left.type == Panel::TYPE_SPACE;
 	bool isValidTypeRight = right.type == Panel::TYPE_PANEL || right.type == Panel::TYPE_SPACE;
-	bool isValidStateLeft = left.state == Panel::STATE_DEFAULT || left.state == Panel::STATE_NONE || left.state == Panel::STATE_FALL_AFTER_WAIT;
-	bool isValidStateRight = right.state == Panel::STATE_DEFAULT || right.state == Panel::STATE_NONE || right.state == Panel::STATE_FALL_AFTER_WAIT;
+    bool isValidStateLeft = left.state == Panel::STATE_DEFAULT || left.state == Panel::STATE_NONE || left.state == Panel::STATE_FALL_AFTER_WAIT || left.state == Panel::STATE_DELETE_AFTER_WAIT;
+	bool isValidStateRight = right.state == Panel::STATE_DEFAULT || right.state == Panel::STATE_NONE || right.state == Panel::STATE_FALL_AFTER_WAIT || right.state == Panel::STATE_DELETE_AFTER_WAIT;
 
 	if (!(isValidTypeLeft && isValidTypeRight && isValidStateLeft && isValidStateRight)) {
 		return false;
@@ -196,7 +196,7 @@ void GameLogic::check_IsPlayerPinch()
 			if (panel.type != Panel::TYPE_SPACE &&
 				!(panel.state == Panel::STATE_FALL_BEFORE_WAIT || panel.state == Panel::STATE_FALLING)) {
 				m_State.SetState(GameState::STATE_WARNING);
-				if (x == line_danger) {
+				if (y == line_danger) {
 					m_State.SetState(GameState::STATE_DANGER);
 				}
 			}
@@ -208,7 +208,12 @@ bool GameLogic::canSeriagari()
 {
 	bool can_seriagari = true;
 
-	// せり上がりできる状態か調べる
+    // 一番上の列にパネルがある場合は、せり上がりできない
+    if (m_State.IsDanger()) {
+        can_seriagari = false;
+    }
+
+	// パネルの状態により、せり上がりできる状態か調べる
 	for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldTop(); ++y) {
 		for (int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x) {
 			const Panel& panel = m_PanelContainer.GetPanel(x, y);
@@ -423,7 +428,8 @@ void GameLogic::update_PanelDefault(int x, int y, Panel& panel)
 {
 	const Panel& under_panel = m_PanelContainer.GetUnderPanel(x, y);
 	if (under_panel.type == Panel::TYPE_SPACE &&
-		under_panel.state != Panel::STATE_SWAPPING) {
+		under_panel.state != Panel::STATE_SWAPPING &&
+        under_panel.state != Panel::STATE_DELETE_AFTER_WAIT) {
 		panel.fall_before_wait = 0;
 		panel.state = Panel::STATE_FALL_BEFORE_WAIT;
 	}
@@ -470,7 +476,7 @@ void GameLogic::update_PanelFallBeforeWait(int x, int y, Panel& panel)
 
 	// パネル解凍直後は下がスペースでないこともありえるのでチェック
 	if (panel.fall_before_wait >= m_FieldSetting.FallBeforeWaitMax()) {
-		if (under_panel.type == Panel::TYPE_SPACE) {
+		if (under_panel.type == Panel::TYPE_SPACE && under_panel.state != Panel::STATE_DELETE_AFTER_WAIT) {
 			panel.fall_before_wait = 0;
 			panel.state = Panel::STATE_FALLING;
 			panel.move_from = PanelPos(0, 1);
@@ -478,7 +484,7 @@ void GameLogic::update_PanelFallBeforeWait(int x, int y, Panel& panel)
 		}
 		else {
 			panel.state = Panel::STATE_FALL_AFTER_WAIT;
-			panel.fall_after_wait = 0;
+			panel.fall_after_wait = 1;
 		}
 	}
 }
@@ -492,7 +498,7 @@ void GameLogic::update_PanelFalling(int x, int y, Panel& panel)
 		panel.move_from = PanelPos(0, 0);
 
 		Panel& under_panel = m_PanelContainer.GetUnderPanel(x, y);
-		if (under_panel.type == Panel::TYPE_SPACE) {
+		if (under_panel.type == Panel::TYPE_SPACE && under_panel.state != Panel::STATE_DELETE_AFTER_WAIT) {
 			panel.state = Panel::STATE_FALLING;
 			panel.move_from = PanelPos(0, 1);
 			std::swap(panel, under_panel);
@@ -510,22 +516,22 @@ void GameLogic::update_PanelFalling(int x, int y, Panel& panel)
 			if (check.type == Panel::TYPE_SPACE) {
 				under_panel.is_chain_seed = panel.is_chain_seed;
 				// 滑り込ませ連鎖できるか？
-				if (under_panel.swapping_count <= (m_FieldSetting.SwappingCountMax()/2) ) {
+				if (under_panel.swapping_count >= m_FieldSetting.SwappingCountMax() ) {
 					// STATE_FALL_AFTER_WAIT に切り替えることで
 					// パネルが消せるようにする
 					panel.state = Panel::STATE_FALL_AFTER_WAIT;
-					panel.fall_after_wait = 0;
+					panel.fall_after_wait = 1;
 				}
 			}
 			// 2個下が地面なので地面に到達したとみなす
 			else {
 				panel.state = Panel::STATE_FALL_AFTER_WAIT;
-				panel.fall_after_wait = 0;
+				panel.fall_after_wait = 1;
 			}
 		}
 		else {
 			panel.state = Panel::STATE_FALL_AFTER_WAIT;
-			panel.fall_after_wait = 0;
+			panel.fall_after_wait = 1;
 		}
 	}
 }
@@ -569,12 +575,13 @@ void GameLogic::update_PanelDelete(Panel& panel)
 
 void GameLogic::update_PanelDeleteAfterWait(int x, int y, Panel& panel)
 {
+    panel.type  = Panel::TYPE_SPACE;
+    panel.color = Panel::COLOR_NONE;
 	panel.delete_after_wait -= m_FieldSetting.DecPanelDeleteAfterWait();
+
 	if (panel.delete_after_wait <= 0 ) {
 		panel.reset();
 		panel.state = Panel::STATE_NONE;
-		panel.type  = Panel::TYPE_SPACE;
-		panel.color = Panel::COLOR_NONE;
 		// todo : 上のパネルに連鎖フラグを立てる
 		setChainFlag(PanelPos(x, y));
 	}

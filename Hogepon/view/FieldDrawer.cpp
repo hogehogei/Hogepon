@@ -5,10 +5,12 @@
 
 FieldDrawer::FieldDrawer()
 	: m_PanelDrawer2D(),
-      m_CursorTexture()
+      m_CursorTexture(),
+      m_FrameTexture()
 {
-	m_PanelDrawer2D.SetDrawSetting(PanelDrawer2D::DrawSetting(50, 400, 40));
+	m_PanelDrawer2D.SetDrawSetting(PanelDrawer2D::DrawSetting(50, 560, 40));
     m_CursorTexture.ReadSetting(U"setting/cursor.xml");
+    m_FrameTexture = s3d::Texture(U"image/frame.png");
 }
 
 FieldDrawer::~FieldDrawer()
@@ -18,6 +20,7 @@ void FieldDrawer::Draw(const GameLogic& gamelogic)
 {
 	m_PanelDrawer2D.DrawPanels(gamelogic);
 	drawCursor(gamelogic);
+    m_FrameTexture.draw(40, 70);
 }
 
 void FieldDrawer::drawCursor(const GameLogic& gamelogic)
@@ -31,7 +34,7 @@ void FieldDrawer::drawCursor(const GameLogic& gamelogic)
 
 	int panel_unit = 40;
     int draw_x = 50 + cursor_x * panel_unit - 7;
-    int draw_y = 400 - cursor_y * panel_unit - 7 - seriagari_dy;
+    int draw_y = 560 - cursor_y * panel_unit - 7 - seriagari_dy;
 
     m_CursorTexture.SubTexture(U"Cursor").draw(draw_x, draw_y);
 }
