@@ -27,7 +27,9 @@ public:
     GameLogic( PlayerID id,
                GameMode mode,
                const s3d::String& setting_filepath );
-    ~GameLogic() throw();
+    GameLogic(const GameLogic&) = delete;
+    GameLogic& operator=(const GameLogic&) = delete;
+    ~GameLogic() noexcept = default;
 
     const PanelContainer& GetPanelContainer() const { return m_PanelContainer; }
 	const CursorPos& GetCursorPos() const { return m_Cursor; }
@@ -39,26 +41,17 @@ public:
     void Update();
     
 private:
-
-    GameLogic( const GameLogic& );
-    GameLogic& operator=( const GameLogic& );
-    
    
     // パネルの状態を更新します
-    void updateState( int x, int y );
+    void updatePanel( int x, int y );
     // お邪魔パネルのアップデートします
-    //void updateOjyama( uint32_t id );
-
-    /**
-     * @brief お邪魔パネルのコリジョンチェックします
-     * @return 下で引っかかったパネル、もしくはスペースパネル
-     */
-    //Panel isCollisionOjyama( uint32_t id );
+    void updateOjyamaPanel( int x, int y );
 
 	void clearPanelMark();
 	void processInput();
 	bool swapPanel();
 	void check_IsPlayerPinch();
+    void fallOjyamaLine();
 	bool canSeriagari();
 	void doSeriagari();
 	void judgeGameOver();
@@ -75,15 +68,28 @@ private:
 	void update_PanelDelete(Panel& panel);
 	void update_PanelDeleteAfterWait(int x, int y, Panel& panel);
 
+    void update_OjyamaDefault(int x, int y);
+    void update_OjyamaFallBeforeWait(int x, int y);
+    void update_OjyamaFalling(int x, int y);
+    void update_OjyamaFallAfterWait(int x, int y);
+    void update_OjyamaUncompressBeforeWait(int x, int y);
+    void update_OjyamaUncompress(int x, int y);
+    void update_OjyamaUncompressAfterWait(int x, int y);
+
+
+    /**
+    * @brief お邪魔パネルのコリジョンチェックします
+    * @return 下で引っかかったパネル、もしくはスペースパネル
+    */
 	void setChainFlag(const PanelPos& pos);
 
     const PlayerID	m_PlayerID;
     const GameMode	m_GameMode;
     
-	PanelContainer	  m_PanelContainer;			// パネルコンテナ
-	CursorPos		  m_Cursor;					// カーソル位置
-    GameFieldSetting  m_FieldSetting;			// フィールドの基本情報
-    GameState         m_State;					// 状態を表す構造体
+	PanelContainer	  m_PanelContainer;			                // パネルコンテナ
+	CursorPos		  m_Cursor;				                	// カーソル位置
+    GameFieldSetting  m_FieldSetting;		                	// フィールドの基本情報
+    GameState         m_State;				                	// 状態を表す構造体
 };
 
 

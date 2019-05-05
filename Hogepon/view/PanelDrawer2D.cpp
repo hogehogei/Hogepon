@@ -69,6 +69,9 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
             m_PanelTexture.SubTexture(mark_id).draw(draw_x, draw_y);
         }
     }
+    if (panel.type == Panel::TYPE_OJYAMA) {
+        s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0xFF, 0xFF, 0xFF));
+    }
 }
 
 int PanelDrawer2D::calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x)

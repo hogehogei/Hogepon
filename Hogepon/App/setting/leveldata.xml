@@ -18,6 +18,10 @@
    FallAfterWaitMax="2"
    IncSwappingCount="1"
    SwappingCountMax="6"
+   IncOjyamaPanelDeleteBeforeWait="1"
+   OjyamaPanelDeleteBeforeWaitMax="6"
+   DecOjyamaPanelDeleteWait="1"
+   DecOjyamaPanelDeleteAfterWait="1"
    >
   </GameFieldSettings>
   <FieldInfo

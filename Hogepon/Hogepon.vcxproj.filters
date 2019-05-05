@@ -105,6 +105,12 @@
     <ClCompile Include="util\SubTextures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="core\OjyamaPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\OjyamaCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -297,6 +303,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util\SubTextures.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\OjyamaPanel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\OjyamaCreator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

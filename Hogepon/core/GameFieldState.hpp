@@ -20,7 +20,7 @@ public:
 public:
 
     GameState();
-	~GameState() noexcept;
+    ~GameState() noexcept = default;
 
     int Point() const { return m_Point; }
     int ChainCount() const { return m_ChainCount; }

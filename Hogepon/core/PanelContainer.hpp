@@ -4,34 +4,33 @@
 
 #include "Siv3D.hpp"
 #include "core/PanelCreator.hpp"
-
+#include "core/OjyamaPanel.hpp"
+#include "core/OjyamaCreator.hpp"
 
 class PanelContainer
 {
 public:
 
-    PanelContainer();
-	~PanelContainer() noexcept;
+    PanelContainer() = default;
+    ~PanelContainer() noexcept = default;
 
 	void Initialize(int w, int h, uint32_t seed);
 
     Panel& GetPanel( int x, int y );
 	const Panel& GetPanel(int x, int y) const;
 	Panel& GetUnderPanel(int x, int y);
-	void SetPanel(int x, int y, const Panel& panel);
+    void SetPanel(int x, int y, const Panel& panel);
+
+    OjyamaPanel GetOjyamaPanel(uint32_t ojyama_id);
+    void ClearOjyamaUpdated();
 
 	bool Is_InFieldCursor(int x, int y) const;
 	bool Is_InField(int x, int y) const;
 
-    /**
-     * @brief ステージの幅
-     */
-    int Width() const { return m_Width; }
-    /**
-     * @brief ステージの高さ
-     */
-    int Height() const { return m_Height; }
+    void FallOjyamaLine(bool dequeue_enable);
+    void OjyamaAppend(int chain_count, int doujikeshi_count);
 
+    int FieldNewOjyamaLine() const { return m_RealHeight - 1; }
 	int FieldTop() const { return m_Height; }
 	int FieldBottom() const { return 1; }
 	int FieldNextLine() const { return 0; }
@@ -50,14 +49,13 @@ private:
 	// パネル製造機
 	PanelCreator m_PanelCreator;
 
+    // お邪魔パネル管理
+    OjyamaCreator m_OjyamaCreator;
+
 	int m_Width;
 	int m_Height;
 	int m_RealWidth;
 	int m_RealHeight;
-
-    // お邪魔パネルを管理
-    //OjyamaQueue mOjyamaQueue;
-    //OjyamaList  mOjyamaOnStage;
 };
 
 

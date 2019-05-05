@@ -6,13 +6,6 @@
 #include "core/Panel.hpp"
 #include "core/PanelContainer.hpp"
 
-
-PanelContainer::PanelContainer()
-{}
-
-PanelContainer::~PanelContainer() throw()
-{}
-
 void PanelContainer::Initialize(int w, int h, uint32_t seed)
 {
 	m_Width      = w;
@@ -53,6 +46,23 @@ void PanelContainer::SetPanel(int x, int y, const Panel& panel)
 	m_Panels[y * m_RealWidth + x] = panel;
 }
 
+OjyamaPanel PanelContainer::GetOjyamaPanel(uint32_t ojyama_id)
+{
+    return OjyamaPanel(this, ojyama_id);
+}
+
+void PanelContainer::ClearOjyamaUpdated()
+{
+    for (int y = FieldBottom(); y <= FieldNewOjyamaLine(); ++y) {
+        for (int x = FieldLeft(); x <= FieldRight(); ++x) {
+            Panel& panel = GetPanel(x, y);
+            if (panel.type == Panel::TYPE_OJYAMA && panel.ojyama) {
+                panel.ojyama->is_updated = false;
+            }
+        }
+    }
+}
+
 bool PanelContainer::Is_InFieldCursor(int x, int y) const
 {
 	if (x >= FieldLeft() && x <= ( FieldRight() - 1 ) &&
@@ -73,6 +83,16 @@ bool PanelContainer::Is_InField(int x, int y) const
 	}
 
 	return false;
+}
+
+void PanelContainer::FallOjyamaLine(bool dequeue_enable)
+{
+    m_OjyamaCreator.FallOjyamaLine(this, dequeue_enable);
+}
+
+void PanelContainer::OjyamaAppend(int chain_count, int doujikeshi_count)
+{
+    m_OjyamaCreator.Append(chain_count, doujikeshi_count);
 }
 
 void PanelContainer::NewLine()

@@ -2,6 +2,7 @@
 #include <random>
 #include <Siv3D.hpp>
 #include "core/GameLogic.hpp"
+#include "core/OjyamaPanel.hpp"
 
 GameLogic::GameLogic( PlayerID id,
                       GameMode mode,
@@ -25,9 +26,6 @@ GameLogic::GameLogic( PlayerID id,
 	m_Cursor.cy = 6;
 }
 
-GameLogic::~GameLogic() throw()
-{}
-
 void GameLogic::Update()
 {
 	if (m_State.IsGameOver()) {
@@ -43,19 +41,22 @@ void GameLogic::Update()
 	m_State.SetState(GameState::STATE_AUTO_SERIAGARI);
 	m_State.ClearState(GameState::STATE_SERIAGARI | GameState::STATE_DELETE_PANEL | GameState::STATE_UNCOMPRESS_OJYAMA);
 	clearPanelMark();
+    m_PanelContainer.ClearOjyamaUpdated();
 
 	// 入力に対する処理
 	processInput();
 	// フィールドがピンチか調べる
 	check_IsPlayerPinch();
-    
+    // お邪魔パネルを降らせる
+    fallOjyamaLine();
+
     //
     // パネルの状態をupdate
     // 下から順番に調べていく
     // なぜ下から調べるかというと、パネルが落ちるときに
     // 上から調べるとずれが生じるから
     // 
-	for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldTop(); ++y ) {
+	for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldNewOjyamaLine(); ++y ) {
         for( int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x ){
             Panel& panel = m_PanelContainer.GetPanel( x, y );
 
@@ -63,24 +64,14 @@ void GameLogic::Update()
             if( panel.is_chain_seed ){
                 isEndChain = false;
             }
-			/*
-            if( panel.type == Panel::TYPE_OJYAMA &&
-                ojyamaID_set.find( panel.ojyama_id ) == ojyamaID_set.end() ){
-                ojyamaID_set.insert( panel.ojyama_id );
-                updateOjyama( panel.ojyama_id );
+
+            if (panel.type == Panel::TYPE_OJYAMA) {
+                updateOjyamaPanel(x, y);
             }
-            if( panel.type == Panel::TYPE_OJYAMA ){
-                continue;
+            else {
+                // パネルの状態を更新
+                updatePanel(x, y);
             }
-            // おジャマ解凍直後なら処理しない
-            if( panel.is_uncompress ){
-                panel.is_uncompress = false;
-                continue;
-            }
-			*/
-            
-            // フィールドの状態を更新
-            updateState( x, y );
         }
     }
 
@@ -94,9 +85,20 @@ void GameLogic::Update()
     }
 }
 
+void GameLogic::fallOjyamaLine()
+{
+    bool newojyama_fall = false;
+
+    if (canSeriagari()) {
+        newojyama_fall = true;
+    }
+   
+    m_PanelContainer.FallOjyamaLine(newojyama_fall);
+}
+
 void GameLogic::clearPanelMark()
 {
-	for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldTop(); ++y) {
+	for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldNewOjyamaLine(); ++y) {
 		for (int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x) {
 			Panel& panel = m_PanelContainer.GetPanel(x, y);
 			panel.ClearMark();
@@ -134,6 +136,12 @@ void GameLogic::processInput()
 	if (s3d::KeyZ.pressed()) {
 		m_State.SetState(GameState::STATE_SERIAGARI);
 	}
+
+    // テスト用
+    // お邪魔パネルを落下させる
+    if (s3d::KeyO.down()) {
+        m_PanelContainer.OjyamaAppend(3, 0);
+    }
 }
 
 bool GameLogic::swapPanel()
@@ -168,8 +176,8 @@ bool GameLogic::swapPanel()
 	// パネル交換中フラグを立てる
 	// TYPE_SPACE パネルも交換状態を持つので
 	// 交換が終わったら STATE_NONE に戻すこと！
-	left.reset();
-	right.reset();
+	left.Reset();
+	right.Reset();
 	left.state = Panel::STATE_SWAPPING;
 	right.state = Panel::STATE_SWAPPING;
 	left.move_from = PanelPos(-1, 0);
@@ -234,11 +242,6 @@ void GameLogic::doSeriagari()
 		if (m_State.IsSeriagari()) {
 			m_State.IncSeriagariCount(m_FieldSetting.IncFastSeriagari());
 		}
-		// TODO お邪魔を落とすタイミングは decWaitTimer() == 0 のとき
-		//if( !is_del_or_uncompress ){
-			// お邪魔落とせるなら落として！
-		//    exlib::EventManager::instance()->queueEvent( fall_ojyama_ev );
-		// }
 		if (m_State.IsAutoSeriagari() &&
 			(!m_State.IsUncompressOjyama() && !m_State.IsDeletePanel())) {
 			m_State.IncSeriagariCount(m_FieldSetting.IncAutoSeriagari());
@@ -424,6 +427,50 @@ int GameLogic::countDeleteMarkPanel()
 	return delete_panel_count;
 }
 
+void GameLogic::updatePanel(int x, int y)
+{
+    Panel& panel = m_PanelContainer.GetPanel(x, y);
+
+    // パネルとステージの状態を更新するよ！
+    switch (panel.state) {
+    case Panel::STATE_DEFAULT:
+        update_PanelDefault(x, y, panel);
+        break;
+    case Panel::STATE_SWAPPING:
+        update_PanelSwapping(x, y, panel);
+        break;
+    case Panel::STATE_FALL_BEFORE_WAIT:
+        update_PanelFallBeforeWait(x, y, panel);
+        m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
+        break;
+    case Panel::STATE_FALLING:
+        update_PanelFalling(x, y, panel);
+        m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
+        break;
+    case Panel::STATE_FALL_AFTER_WAIT:
+        update_PanelFallAfterWait(x, y, panel);
+        m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
+        break;
+    case Panel::STATE_DELETE_BEFORE_WAIT:
+        update_PanelDeleteBeforeWait(panel);
+        m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
+        m_State.SetState(GameState::STATE_DELETE_PANEL);
+        break;
+    case Panel::STATE_DELETE:
+        update_PanelDelete(panel);
+        m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
+        m_State.SetState(GameState::STATE_DELETE_PANEL);
+        break;
+    case Panel::STATE_DELETE_AFTER_WAIT:
+        update_PanelDeleteAfterWait(x, y, panel);
+        m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
+        m_State.SetState(GameState::STATE_DELETE_PANEL);
+        break;
+    default:
+        break;
+    }
+}
+
 void GameLogic::update_PanelDefault(int x, int y, Panel& panel)
 {
 	const Panel& under_panel = m_PanelContainer.GetUnderPanel(x, y);
@@ -434,7 +481,7 @@ void GameLogic::update_PanelDefault(int x, int y, Panel& panel)
 		panel.fall_before_wait = 0;
 		panel.state = Panel::STATE_FALL_BEFORE_WAIT;
 	}
-	if (under_panel.state == Panel::STATE_FALL_BEFORE_WAIT) {
+	else if (under_panel.state == Panel::STATE_FALL_BEFORE_WAIT) {
 		panel.is_chain_seed = under_panel.is_chain_seed;
 		panel.fall_before_wait = under_panel.fall_before_wait;
 		panel.state = Panel::STATE_FALL_BEFORE_WAIT;
@@ -456,7 +503,7 @@ void GameLogic::update_PanelSwapping(int x, int y, Panel& panel)
 				panel.state = Panel::STATE_FALL_BEFORE_WAIT;
 			}
 			else if (under_panel.type == Panel::TYPE_PANEL) {
-				panel.reset();
+				panel.Reset();
 				panel.state = Panel::STATE_DEFAULT;
 			}
 		}
@@ -550,10 +597,10 @@ void GameLogic::update_PanelFallAfterWait(int x, int y, Panel& panel)
 		panel.fall_before_wait = under_panel.fall_before_wait;
 		panel.state = Panel::STATE_FALL_BEFORE_WAIT;
 	}
-	if (panel.fall_after_wait >= m_FieldSetting.FallAfterWaitMax()) {
+	else if (panel.fall_after_wait >= m_FieldSetting.FallAfterWaitMax()) {
 		// パネルをリセットして
 		// 通常状態へ
-		panel.reset();
+		panel.Reset();
 		panel.state = Panel::STATE_DEFAULT;
 	}
 }
@@ -585,7 +632,7 @@ void GameLogic::update_PanelDeleteAfterWait(int x, int y, Panel& panel)
 	panel.delete_after_wait -= m_FieldSetting.DecPanelDeleteAfterWait();
 
 	if (panel.delete_after_wait <= 0 ) {
-		panel.reset();
+		panel.Reset();
 		panel.state = Panel::STATE_NONE;
 		// 上のパネルに連鎖フラグを立てる
 		setChainFlag(PanelPos(x, y));
@@ -612,253 +659,238 @@ void GameLogic::setChainFlag(const PanelPos& pos)
 	}
 }
 
-void GameLogic::updateState( int x, int y )
+void GameLogic::updateOjyamaPanel( int x, int y )
 {
-    Panel& panel = m_PanelContainer.GetPanel( x, y );
-    
-    // パネルとステージの状態を更新するよ！
-    switch( panel.state ){
+    const Panel& ojyama_panel = m_PanelContainer.GetPanel(x, y);
+
+    switch( ojyama_panel.state ){
     case Panel::STATE_DEFAULT:
-		update_PanelDefault(x, y, panel);
-		break;
-    case Panel::STATE_SWAPPING:
-		update_PanelSwapping(x, y, panel);
+        update_OjyamaDefault(x, y);
         break;
+
     case Panel::STATE_FALL_BEFORE_WAIT:
-		update_PanelFallBeforeWait(x, y, panel);
-		m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
-		break;
-    break;
+        update_OjyamaFallBeforeWait(x, y);
+        break;
+
     case Panel::STATE_FALLING:
-		update_PanelFalling(x, y, panel);
-		m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
+        update_OjyamaFalling(x, y);
         break;
+
     case Panel::STATE_FALL_AFTER_WAIT:
-		update_PanelFallAfterWait(x, y, panel);
-		m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
-		break;
-    case Panel::STATE_DELETE_BEFORE_WAIT:
-		update_PanelDeleteBeforeWait(panel);
-		m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
-		m_State.SetState(GameState::STATE_DELETE_PANEL);
+        update_OjyamaFallAfterWait(x, y);
         break;
-    case Panel::STATE_DELETE:
-		update_PanelDelete(panel);
-		m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
-		m_State.SetState(GameState::STATE_DELETE_PANEL);
+
+    case Panel::STATE_UNCOMPRESS_BEFORE_WAIT:
+        update_OjyamaUncompressAfterWait(x, y);
         break;
-    case Panel::STATE_DELETE_AFTER_WAIT:
-		update_PanelDeleteAfterWait(x, y, panel);
-		m_State.ClearState(GameState::STATE_AUTO_SERIAGARI);
-		m_State.SetState(GameState::STATE_DELETE_PANEL);
+
+    case Panel::STATE_UNCOMPRESS:
+        update_OjyamaUncompress(x, y);
         break;
+
+    case Panel::STATE_UNCOMPRESS_AFTER_WAIT:
+        update_OjyamaUncompressAfterWait(x, y);
+        break;
+
     default:
         break;
     }
 }
 
-
-
-#if 0
-void GameFieldLogic::updateOjyama( uint32_t id )
+void GameLogic::update_OjyamaDefault(int x, int y)
 {
-    // お邪魔パネルはIDごとにアップデートする
-    OjyamaPanelPtr ojyama = mPanelContainer->getOjyamaOnStage( id );
-    exlib::Vector2<short> pos = ojyama->getPos();
-    Panel& panel = mPanelContainer->getPanel( pos.x, pos.y );
-    assert( panel.type == Panel::TYPE_OJYAMA );
+    const Panel& panel = m_PanelContainer.GetPanel(x, y);
+    // 更新済みならば更新しない
+    if (panel.ojyama->is_updated) {
+        return;
+    }
 
-    int width = ojyama->width(), height = ojyama->height();
-    int field_width = mPanelContainer->fieldWidth();
-    int field_height = mPanelContainer->fieldHeight();
+    // お邪魔パネルはIDごとにアップデートする
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
     // このパネルに状態もろもろセットする
     Panel setpanel = panel;
+    Panel under_panel;
 
-    bool is_auto_seriagari = false;
-    bool is_uncompress_ojyama = false;
-    
-    switch( panel.state ){
-    case Panel::STATE_DEFAULT:
-    {
-        const Panel& under_panel = isCollisionOjyama( id );
-        if( under_panel.state == Panel::STATE_NONE ){
-            // 下がスペース！
-            setpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
-            setpanel.fall_before_wait = mFieldSetting.waitTimeBeforeFall();
-            mPanelContainer->setOjyamaPanel( id, setpanel );
-        }
-        else if( under_panel.state == Panel::STATE_FALL_BEFORE_WAIT ){
-            // 下が落下寸前！
-            setpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
-            setpanel.fall_before_wait = under_panel.fall_before_wait;
-            mPanelContainer->setOjyamaPanel( id, setpanel );
-        }
-        // 自動せり上がり有効
-        is_auto_seriagari = true;
+    // 下の空白が交換中、もしくは消去後ウェイト以外なら落下
+    if (ojyama_panel.CanFallOjyamaPanel()) {
+        setpanel.fall_before_wait = 0;
+        setpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
     }
-    break;
-    case Panel::STATE_FALL_BEFORE_WAIT:
-        --setpanel.fall_before_wait;
-        if( setpanel.fall_before_wait < 0 ){
-            setpanel.reset();
-            const Panel& under_panel = isCollisionOjyama( id );
+    else if (ojyama_panel.IsExistUnderOjyama(Panel::STATE_FALL_BEFORE_WAIT, &under_panel)) {
+        setpanel.fall_before_wait = under_panel.fall_before_wait;
+        setpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
+    }
 
-            // パネル解凍直後は下がスペースでないこともありえるのでチェック
-            if( under_panel.state == Panel::STATE_NONE ){
-                setpanel.state = Panel::STATE_FALLING;
-                setpanel.move_from = exlib::Vector2<short>( 0, -1 );
-                mPanelContainer->downOjyamaPanel( id );
-            }
-            else {
-                setpanel.state = Panel::STATE_FALL_AFTER_WAIT;
-                setpanel.fall_after_wait = 5;
-            }
-        }
-        mPanelContainer->setOjyamaPanel( id, setpanel );
-        break;
-    case Panel::STATE_FALLING:
-        // 同じidのお邪魔パネルならfall_countはすべて同じなはず
-        setpanel.fall_count += mFieldSetting.incFallCount();
-        
-        if( (setpanel.fall_count >> 16) > mFieldSetting.panelSize() ){
-            const Panel& under_panel = isCollisionOjyama( id );
-            setpanel.reset();
-            
-            if( under_panel.state == Panel::STATE_NONE ){
-                // 下が全部スペースなのでそのまま
-                setpanel.state = Panel::STATE_FALLING;
-                setpanel.move_from = exlib::Vector2<short>( 0, -1 );
-                mPanelContainer->downOjyamaPanel( id );
-                std::cout << "******** PASS ********" << std::endl;
-            }
-            else if( under_panel.state == Panel::STATE_FALL_BEFORE_WAIT ){
-                setpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
-                setpanel.fall_before_wait = under_panel.fall_before_wait;
-            }
-            else {
-                setpanel.reset();
-                setpanel.state = Panel::STATE_DEFAULT;
-            }
-        }
+    ojyama_panel.SetOjyamaPanel(setpanel);
+    // 更新済みマークをつける
+    ojyama_panel.SetUpdated();
+}
 
-        mPanelContainer->setOjyamaPanel( id, setpanel );
-        break;
-    case Panel::STATE_FALL_AFTER_WAIT:
-    {
-        //assert( 0 );
-        const Panel& under_panel = isCollisionOjyama( id );
-        --setpanel.fall_after_wait;
-        
-        if( under_panel.state == Panel::STATE_FALL_BEFORE_WAIT ){
-            setpanel.is_chain_seed = under_panel.is_chain_seed;
+void GameLogic::update_OjyamaFallBeforeWait(int x, int y)
+{
+    const Panel& panel = m_PanelContainer.GetPanel(x, y);
+    // 更新済みならば更新しない
+    if (panel.ojyama->is_updated) {
+        return;
+    }
+
+    // お邪魔パネルはIDごとにアップデートする
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+    // このパネルに状態もろもろセットする
+    Panel setpanel = panel;
+    Panel under_panel;
+
+    setpanel.fall_before_wait += m_FieldSetting.IncFallBeforeWait();
+
+    // まだ落下待ちのパネルがある場合は、それが落ち始めるまで現状維持
+    if (ojyama_panel.IsExistUnderOjyama(Panel::STATE_FALL_BEFORE_WAIT, &under_panel)) {
+        setpanel.fall_before_wait = under_panel.fall_before_wait;
+        setpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
+    }
+    // 落下待ちのパネルなし。かつ、落下ウェイトが待ち時間を越えたら
+    else if (setpanel.fall_before_wait >= m_FieldSetting.FallBeforeWaitMax()) {
+        // 下の空白が消去後ウェイト以外なら落下
+        if (ojyama_panel.CanFallOjyamaPanel()) {
+            ojyama_panel.Fall();
+            // 更新済みマークをつける
+            ojyama_panel.SetUpdated();
+        }
+        else {
+            setpanel.state = Panel::STATE_FALL_AFTER_WAIT;
+            setpanel.fall_after_wait = 1;
+        }
+    }
+
+    if (!ojyama_panel.IsUpdated()) {
+        ojyama_panel.SetOjyamaPanel(setpanel);
+        // 更新済みマークをつける
+        ojyama_panel.SetUpdated();
+    }
+}
+
+void GameLogic::update_OjyamaFalling(int x, int y)
+{
+    const Panel& panel = m_PanelContainer.GetPanel(x, y);
+    // 更新済みならば更新しない
+    if (panel.ojyama->is_updated) {
+        return;
+    }
+
+    // お邪魔パネルはIDごとにアップデートする
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+    // このパネルに状態もろもろセットする
+    Panel setpanel = panel;
+    Panel under_panel;
+
+    setpanel.fall_count += m_FieldSetting.IncFallCount();
+
+    if (setpanel.fall_count >= m_FieldSetting.FallCountMax()) {
+        setpanel.fall_count = 0;
+        setpanel.move_from = PanelPos(0, 0);
+
+        // 下の空白が消去後ウェイト以外なら落下
+        if (ojyama_panel.CanFallOjyamaPanel()) {
+            ojyama_panel.Fall();
+            // 更新済みマークをつける
+            ojyama_panel.SetUpdated();
+        }
+        else if (ojyama_panel.IsExistUnderOjyama(Panel::STATE_FALL_BEFORE_WAIT, &under_panel)) {
             setpanel.fall_before_wait = under_panel.fall_before_wait;
             setpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
         }
-        if( setpanel.fall_after_wait < 0 ){
-            setpanel.reset();
+        else {
+            setpanel.Reset();
             setpanel.state = Panel::STATE_DEFAULT;
         }
-        mPanelContainer->setOjyamaPanel( id, setpanel );
-
-        // 自動せり上がり有効
-        is_auto_seriagari = true;
-    }
-    break;
-    case Panel::STATE_UNCOMPRESS_AFTER_WAIT:
-        // 解凍が次で終了するなら
-        if( panel.delete_after_wait - 1 < 0 ){
-            // お邪魔のラインが0なら
-            // フィールド上のお邪魔データから除外しよう
-            if( ojyama->updateDecompressed() ){
-                mPanelContainer->eraseOjyamaOnStage( id );
-            }
-        }
-        /* FALLTHROUGH */
-    case Panel::STATE_UNCOMPRESS_BEFORE_WAIT:
-    case Panel::STATE_UNCOMPRESS:
-
-        // パネル解凍中
-        is_uncompress_ojyama = true;
-        
-        // お邪魔パネルの状態更新
-        for( int i = pos.y;
-             i >= 0 && i < field_height && i > pos.y - height;
-             --i ){
-            for( int j = pos.x;
-                 j >= 1 && j <= field_width && j <= width;
-                 ++j ){
-                Panel& dstpanel = mPanelContainer->getPanel( j, i );
-
-                if( dstpanel.state == Panel::STATE_UNCOMPRESS_BEFORE_WAIT ){
-                    --dstpanel.delete_before_wait;
-                    std::cout << "uncompress_before_wait : " << dstpanel.delete_before_wait << std::endl;
-                    if( dstpanel.delete_before_wait < 0 ){
-                        dstpanel.state = Panel::STATE_UNCOMPRESS;
-                    }
-                }
-                else if( dstpanel.state == Panel::STATE_UNCOMPRESS ){
-                    --dstpanel.delete_wait;
-                    std::cout << "uncompress_wait : " << dstpanel.delete_wait << std::endl;
-                    if( dstpanel.delete_wait < 0 ){
-                        dstpanel.state = Panel::STATE_UNCOMPRESS_AFTER_WAIT;
-                    }
-                }
-                else if( dstpanel.state == Panel::STATE_UNCOMPRESS_AFTER_WAIT ){
-                    --dstpanel.delete_after_wait;
-                    std::cout << "uncompress_after_wait : " << dstpanel.delete_after_wait << std::endl;
-                    if( dstpanel.delete_after_wait < 0 ){
-                        dstpanel.type  = dstpanel.is_uncompress ? Panel::TYPE_PANEL : Panel::TYPE_OJYAMA;
-                        dstpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
-                    }
-                }
-                else {
-                    assert( 0 );
-                }
-            }
-        }
-    default:
-        // 自動せり上がり有効
-        is_auto_seriagari = true;
-        break;
     }
 
-    // お邪魔パネルも普通のパネルと同様に
-    // 一つでも自動せり上がりできない条件なら
-    // そのフレームは自動せり上がりしないよ
-    if( !is_auto_seriagari ){
-        mState.clearState( GameState::STATE_AUTO_SERIAGARI );
-    }
-    if( is_uncompress_ojyama ){
-        mState.setState( GameState::STATE_UNCOMPRESS_OJYAMA );
+    if (!ojyama_panel.IsUpdated()) {
+        ojyama_panel.SetOjyamaPanel(setpanel);
+        // 更新済みマークをつける
+        ojyama_panel.SetUpdated();
     }
 }
-#endif 
 
-#if 0
-Panel GameFieldLogic::isCollisionOjyama( uint32_t id )
+void GameLogic::update_OjyamaFallAfterWait(int x, int y)
 {
-    int field_width = mPanelContainer->fieldWidth();
-    
-    OjyamaPanelPtr ojyama = mPanelContainer->getOjyamaOnStage( id );
-    exlib::Vector2<short> pos = ojyama->getPos();
+    const Panel& panel = m_PanelContainer.GetPanel(x, y);
+    // 更新済みならば更新しない
+    if (panel.ojyama->is_updated) {
+        return;
+    }
 
-    Panel result;
-    result.type = Panel::TYPE_SPACE;
-    result.state = Panel::STATE_NONE;
-    for( int j = pos.x;
-         j >= 1 && j <= field_width && j <= ojyama->width();
-         ++j ){
-        Panel& under_panel = mPanelContainer->getPanel( j, pos.y + 1 );
+    // お邪魔パネルはIDごとにアップデートする
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+    // このパネルに状態もろもろセットする
+    Panel setpanel = panel;
+    Panel under_panel;
 
-        if( under_panel.state == Panel::STATE_FALL_BEFORE_WAIT ){
-            result = under_panel;
+    setpanel.fall_after_wait += m_FieldSetting.IncFallAfterWait();
+    if (ojyama_panel.IsExistUnderOjyama(Panel::STATE_FALL_BEFORE_WAIT, &under_panel)) {
+        setpanel.fall_before_wait = under_panel.fall_before_wait;
+        setpanel.state = Panel::STATE_FALL_BEFORE_WAIT;
+    }
+    else if (setpanel.fall_after_wait >= m_FieldSetting.FallAfterWaitMax()) {
+        // パネルをリセットして
+        // 通常状態へ
+        setpanel.Reset();
+        setpanel.state = Panel::STATE_DEFAULT;
+    }
+
+    ojyama_panel.SetOjyamaPanel(setpanel);
+    // 更新済みマークをつける
+    ojyama_panel.SetUpdated();
+}
+
+void GameLogic::update_OjyamaUncompressBeforeWait(int x, int y)
+{
+    // 消去中は個別にカウンタを更新する
+    Panel& panel = m_PanelContainer.GetPanel(x, y);
+    panel.delete_before_wait += m_FieldSetting.IncOjyamaPanelDeleteBeforeWait();
+
+    if (panel.delete_before_wait >= m_FieldSetting.OjyamaPanelDeleteBeforeWaitMax()) {
+        panel.state = Panel::STATE_UNCOMPRESS;
+    }
+}
+
+void GameLogic::update_OjyamaUncompress(int x, int y)
+{
+    // 消去中は個別にカウンタを更新する
+    Panel& panel = m_PanelContainer.GetPanel(x, y);
+
+    panel.delete_wait -= m_FieldSetting.DecOjyamaPanelDeleteWait();
+    if (panel.delete_wait <= 0) {
+        panel.state = Panel::STATE_UNCOMPRESS_AFTER_WAIT;
+        //exlib::IEventDataPtr event(new PanelDeletedEvent(mPlayerID, exlib::Vector2<int>(x, y)));
+        //exlib::EventManager::instance()->queueEvent(event);
+    }
+}
+
+void GameLogic::update_OjyamaUncompressAfterWait(int x, int y)
+{
+    // 消去中は個別にカウンタを更新する
+    Panel& panel = m_PanelContainer.GetPanel(x, y);
+    // お邪魔パネルはIDごとにアップデートする
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+
+    panel.delete_after_wait -= m_FieldSetting.DecOjyamaPanelDeleteAfterWait();
+
+    if (panel.delete_after_wait <= 0) {
+
+        panel.Reset();
+        panel.state = Panel::STATE_DEFAULT;
+        // お邪魔パネルの最下段ならパネルになる。それ以外ならお邪魔パネルのまま
+        if (panel.is_be_panel) {
+            panel.type = Panel::TYPE_PANEL;
+            // お邪魔パネル情報をクリア
+            panel.ojyama.reset();
+            // パネル消去後は連鎖判定あり
+            panel.is_chain_seed = true;
         }
-        else if( under_panel.type != Panel::TYPE_SPACE ){
-            result = under_panel;
-            break;
+        else {
+            panel.type  = Panel::TYPE_OJYAMA;
         }
     }
-	return result;
 }
-#endif
+
 

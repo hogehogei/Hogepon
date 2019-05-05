@@ -202,6 +202,8 @@
     <ClCompile Include="core\GameFieldSetting.cpp" />
     <ClCompile Include="core\GameFieldState.cpp" />
     <ClCompile Include="core\GameLogic.cpp" />
+    <ClCompile Include="core\OjyamaCreator.cpp" />
+    <ClCompile Include="core\OjyamaPanel.cpp" />
     <ClCompile Include="core\Panel.cpp" />
     <ClCompile Include="core\PanelContainer.cpp" />
     <ClCompile Include="core\PanelCreator.cpp" />
@@ -277,6 +279,8 @@
     <ClInclude Include="core\GameFieldSetting.hpp" />
     <ClInclude Include="core\GameFieldState.hpp" />
     <ClInclude Include="core\GameLogic.hpp" />
+    <ClInclude Include="core\OjyamaCreator.hpp" />
+    <ClInclude Include="core\OjyamaPanel.hpp" />
     <ClInclude Include="core\Panel.hpp" />
     <ClInclude Include="core\PanelContainer.hpp" />
     <ClInclude Include="core\PanelCreator.hpp" />

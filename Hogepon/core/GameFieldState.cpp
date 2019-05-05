@@ -13,9 +13,6 @@ GameState::GameState()
     m_FieldState( 0 )
 {}
 
-GameState::~GameState()
-{}
-
 void GameState::IncSeriagariCount(int count)
 {
 	m_SeriagariCount += count;

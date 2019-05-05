@@ -9,7 +9,7 @@ class GameFieldSetting
 public:
 
     explicit GameFieldSetting( const s3d::String& filepath );
-	~GameFieldSetting() noexcept;
+    ~GameFieldSetting() noexcept = default;
 
     s3d::String levelName() const { return m_ChallengeLevel; }
 	int Width() const { return m_FieldWidth; }
@@ -41,6 +41,12 @@ public:
 	// パネル交換関連
 	int IncSwappingCount() const { return m_IncSwappingCount; }
 	int SwappingCountMax() const { return m_SwappingCountMax; }
+
+    // お邪魔パネル解凍関連
+    int IncOjyamaPanelDeleteBeforeWait() const { return m_IncOjyamaPanelDeleteBeforeWait; }
+    int OjyamaPanelDeleteBeforeWaitMax() const { return m_OjyamaPanelDeleteBeforeWaitMax; }
+    int DecOjyamaPanelDeleteWait() const { return m_DecOjyamaPanelDeleteWait; }
+    int DecOjyamaPanelDeleteAfterWait() const { return m_DecOjyamaPanelDeleteAfterWait; }
     
 private:
     
@@ -70,6 +76,11 @@ private:
 
 	int m_IncSwappingCount;
 	int m_SwappingCountMax;
+
+    int m_IncOjyamaPanelDeleteBeforeWait;
+    int m_OjyamaPanelDeleteBeforeWaitMax;
+    int m_DecOjyamaPanelDeleteWait;
+    int m_DecOjyamaPanelDeleteAfterWait;
 
 	int m_FieldWidth;
 	int m_FieldHeight;
