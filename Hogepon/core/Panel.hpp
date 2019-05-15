@@ -99,9 +99,10 @@ public:
     int		 fall_after_wait;			// 落下後ウェイト
     bool     is_chain_seed;				// 連鎖フラグ
 	bool     is_mark_delete;			// パネル消去フラグ（消去チェック時に使用する）
+    bool     is_mark_uncompress;
 
     // オジャマパネル関連
-    bool     is_be_panel;               // 解凍されてパネルになるか？
+    bool     is_mark_be_panel;          // 解凍されてパネルになるか？
     PanelPos ojyama_basepos_from;       // お邪魔パネルのベース位置からの距離
     std::shared_ptr<Ojyama> ojyama;     // オジャマパネルへの情報
 

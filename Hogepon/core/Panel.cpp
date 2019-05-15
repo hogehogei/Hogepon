@@ -13,7 +13,8 @@ Panel::Panel()
 	fall_after_wait(0),
 	is_chain_seed(false),
 	is_mark_delete(false),
-    is_be_panel(false),
+    is_mark_uncompress(false),
+    is_mark_be_panel(false),
     ojyama_basepos_from(),
     ojyama(nullptr),
     type( TYPE_SPACE ),
@@ -26,7 +27,9 @@ Panel::~Panel() throw()
 
 void Panel::ClearMark()
 {
-	is_mark_delete = false;
+	is_mark_delete   = false;
+    is_mark_uncompress = false;
+    // is_mark_be_panel はクリアしない
 }
 
 void Panel::Reset()
@@ -42,7 +45,7 @@ void Panel::Reset()
     is_chain_seed      = false;
 	is_mark_delete     = false;
     
-    is_be_panel         = false;
+    is_mark_be_panel = false;
     ojyama_basepos_from = PanelPos(0, 0);
 
     // type, state, color, お邪魔パネルの情報は

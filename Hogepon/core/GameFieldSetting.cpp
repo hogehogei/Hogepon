@@ -22,10 +22,10 @@ GameFieldSetting::GameFieldSetting(const s3d::String& filepath)
 	m_FallAfterWaitMax(0),
 	m_IncSwappingCount(0),
 	m_SwappingCountMax(0),
-    m_IncOjyamaPanelDeleteBeforeWait(0),
-    m_OjyamaPanelDeleteBeforeWaitMax(0),
+    m_DecOjyamaPanelDeleteBeforeWait(0),
     m_DecOjyamaPanelDeleteWait(0),
     m_DecOjyamaPanelDeleteAfterWait(0),
+    m_UncompressBeforeWait(0),
 	m_FieldWidth(0),
 	m_FieldHeight(0)
 
@@ -74,10 +74,10 @@ void GameFieldSetting::parseGameFieldSettings(const s3d::XMLElement& elem)
 	m_SwappingCountMax         = s3d::Parse<int>(elem.attribute(U"SwappingCountMax").value_or(U"0"));
 
     // ‚¨Ž×–‚ƒpƒlƒ‹‰ð“€ŠÖ˜A
-    m_IncOjyamaPanelDeleteBeforeWait = s3d::Parse<int>(elem.attribute(U"IncOjyamaPanelDeleteBeforeWait").value_or(U"0"));
-    m_OjyamaPanelDeleteBeforeWaitMax = s3d::Parse<int>(elem.attribute(U"OjyamaPanelDeleteBeforeWaitMax").value_or(U"0"));
+    m_DecOjyamaPanelDeleteBeforeWait = s3d::Parse<int>(elem.attribute(U"DecOjyamaPanelDeleteBeforeWait").value_or(U"0"));
     m_DecOjyamaPanelDeleteWait       = s3d::Parse<int>(elem.attribute(U"DecOjyamaPanelDeleteWait").value_or(U"0"));
     m_DecOjyamaPanelDeleteAfterWait  = s3d::Parse<int>(elem.attribute(U"DecOjyamaPanelDeleteAfterWait").value_or(U"0"));
+    m_UncompressBeforeWait           = s3d::Parse<int>(elem.attribute(U"UncompressbeforeWait").value_or(U"0"));
 }
 
 void GameFieldSetting::parseFieldInfo(const s3d::XMLElement& elem)

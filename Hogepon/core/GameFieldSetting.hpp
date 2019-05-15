@@ -43,10 +43,10 @@ public:
 	int SwappingCountMax() const { return m_SwappingCountMax; }
 
     // ‚¨Ž×–‚ƒpƒlƒ‹‰ð“€ŠÖ˜A
-    int IncOjyamaPanelDeleteBeforeWait() const { return m_IncOjyamaPanelDeleteBeforeWait; }
-    int OjyamaPanelDeleteBeforeWaitMax() const { return m_OjyamaPanelDeleteBeforeWaitMax; }
+    int DecOjyamaPanelDeleteBeforeWait() const { return m_DecOjyamaPanelDeleteBeforeWait; }
     int DecOjyamaPanelDeleteWait() const { return m_DecOjyamaPanelDeleteWait; }
     int DecOjyamaPanelDeleteAfterWait() const { return m_DecOjyamaPanelDeleteAfterWait; }
+    int UncompressBeforeWait() const { return m_UncompressBeforeWait; }
     
 private:
     
@@ -77,10 +77,10 @@ private:
 	int m_IncSwappingCount;
 	int m_SwappingCountMax;
 
-    int m_IncOjyamaPanelDeleteBeforeWait;
-    int m_OjyamaPanelDeleteBeforeWaitMax;
+    int m_DecOjyamaPanelDeleteBeforeWait;
     int m_DecOjyamaPanelDeleteWait;
     int m_DecOjyamaPanelDeleteAfterWait;
+    int m_UncompressBeforeWait;
 
 	int m_FieldWidth;
 	int m_FieldHeight;

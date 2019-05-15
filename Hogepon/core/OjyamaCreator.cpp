@@ -28,15 +28,20 @@ void OjyamaCreator::FallOjyamaLine(PanelContainer* container, bool dequeue_enabl
         return;
     }
 
+    PanelCreator& creator = container->GetPanelCreator();
     auto ojyama_ptr = m_OjyamaNext.ojyama;
     int left = container->FieldLeft();
     for (int x = left; x < left + ojyama_ptr->width; ++x) {
-        Panel& panel = container->GetPanel(x, container->FieldNewOjyamaLine());
-        panel.type = Panel::TYPE_OJYAMA;
-        panel.state = Panel::STATE_DEFAULT;
-        panel.ojyama = ojyama_ptr;
-        panel.ojyama_basepos_from.y = ojyama_ptr->height - m_OjyamaNext.remain_line;
-        panel.ojyama_basepos_from.x = x;
+        Panel newpanel = creator.Create(); 
+        
+        newpanel.type  = Panel::TYPE_OJYAMA;
+        newpanel.state = Panel::STATE_DEFAULT;
+        newpanel.ojyama = ojyama_ptr;
+        newpanel.ojyama_basepos_from.y = ojyama_ptr->height - m_OjyamaNext.remain_line;
+        newpanel.ojyama_basepos_from.x = x;
+
+        Panel& setpanel = container->GetPanel(x, container->FieldNewOjyamaLine());
+        setpanel = newpanel;
     }
 
     --m_OjyamaNext.remain_line;

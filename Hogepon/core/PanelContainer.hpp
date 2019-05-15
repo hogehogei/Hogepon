@@ -11,6 +11,11 @@ class PanelContainer
 {
 public:
 
+    using OjyamaPanelVec = std::vector<OjyamaPanel>;
+
+public:
+
+
     PanelContainer() = default;
     ~PanelContainer() noexcept = default;
 
@@ -21,12 +26,16 @@ public:
 	Panel& GetUnderPanel(int x, int y);
     void SetPanel(int x, int y, const Panel& panel);
 
+    PanelCreator& GetPanelCreator();
+
     OjyamaPanel GetOjyamaPanel(uint32_t ojyama_id);
-    void ClearOjyamaUpdated();
+    OjyamaPanelVec GetOjyamaPanelListOnField();
+
 
 	bool Is_InFieldCursor(int x, int y) const;
 	bool Is_InField(int x, int y) const;
 
+    void ClearOjyamaUpdated();
     void FallOjyamaLine(bool dequeue_enable);
     void OjyamaAppend(int chain_count, int doujikeshi_count);
 

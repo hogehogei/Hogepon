@@ -16,8 +16,9 @@ public:
     bool IsExistUnderOjyama(Panel::State state, Panel* under_panel);
     bool CanFallOjyamaPanel() const;
     void Fall();
-    void UncompressedBottomLine();
+    void UncompressBottomLine();
 
+    const Panel& GetBasePanel() const;
     void SetUpdated();
     bool IsUpdated() const;
 
@@ -25,7 +26,8 @@ private:
 
     // PanelContainer class Ç©ÇÁÇÃÇ›çÏê¨â¬î\ÅB
     friend class PanelContainer;
-    OjyamaPanel(PanelContainer* panels, int ojyama_id);
+    OjyamaPanel(PanelContainer* container, int ojyama_id);
+    OjyamaPanel(PanelContainer* container, int x, int y, const Panel& panel);
 
     void calculateBasePos(int x, int y, const Panel& panel);
 

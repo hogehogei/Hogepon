@@ -3,13 +3,13 @@
 #include "core/OjyamaPanel.hpp"
 #include "core/PanelContainer.hpp"
 
-OjyamaPanel::OjyamaPanel(PanelContainer* panels, int ojyama_id)
+OjyamaPanel::OjyamaPanel(PanelContainer* container, int ojyama_id)
     : 
     m_OjyamaInfo(),
-    m_PanelContainer(panels)
+    m_PanelContainer(container)
 {
     // 引数のパネルコンテナが不正だったらバグ
-    if (!panels) {
+    if (!container) {
         assert(0 && "Argument \'panels\' is null. IT MUST BE BUG");
     }
     
@@ -33,6 +33,22 @@ OjyamaPanel::OjyamaPanel(PanelContainer* panels, int ojyama_id)
     // その場合はバグ。
     if (!is_found) {
         assert(0 && "No OjyamaPanel found. IT MUST BE BUG");
+    }
+}
+
+OjyamaPanel::OjyamaPanel(PanelContainer* container, int x, int y, const Panel& panel)
+    :
+    m_OjyamaInfo(),
+    m_PanelContainer(container)
+{
+    // 引数のパネルコンテナが不正だったらバグ
+    if (!container) {
+        assert(0 && "Argument \'panels\' is null. IT MUST BE BUG");
+    }
+
+    if (panel.type == Panel::TYPE_OJYAMA && panel.ojyama) {
+        m_OjyamaInfo = panel.ojyama;
+        calculateBasePos(x, y, panel);
     }
 }
 
@@ -62,7 +78,16 @@ void OjyamaPanel::SetOjyamaPanel(const Panel& setpanel)
              ++x) {
 
             Panel& panel = m_PanelContainer->GetPanel(x, y);
-            panel = setpanel;
+            // カウンタと状態だけセット
+            panel.move_from          = setpanel.move_from;
+            panel.delete_before_wait = setpanel.delete_before_wait;
+            panel.delete_wait        = setpanel.delete_wait;
+            panel.delete_after_wait  = setpanel.delete_after_wait;
+            panel.swapping_count     = setpanel.swapping_count;
+            panel.fall_before_wait   = setpanel.fall_before_wait;
+            panel.fall_count         = setpanel.fall_count;
+            panel.fall_after_wait    = setpanel.fall_after_wait;
+            panel.state              = setpanel.state;
         }
     }
 }
@@ -151,16 +176,45 @@ void OjyamaPanel::Fall()
     }
 }
 
-void OjyamaPanel::UncompressedBottomLine()
+void OjyamaPanel::UncompressBottomLine()
 {
     auto ojyama = m_OjyamaInfo.lock();
     if (!ojyama) {
         assert(0 && "OjyamaPanel has already deleted. IT MUST BE BUG");
     }
 
-    if( ojyama->height >= 1 ){
+    int w = ojyama->width;
+    int h = ojyama->height;
+    int start_x = m_BasePos.x;
+    int start_y = m_BasePos.y;
+
+    for (int y = start_y;
+        y <= m_PanelContainer->FieldNewOjyamaLine() && y < (start_y + h);
+        ++y) {
+        for (int x = start_x;
+            x <= m_PanelContainer->FieldRight() && x < (start_x + w);
+            ++x) {
+
+            Panel& panel = m_PanelContainer->GetPanel(x, y);
+
+            if (panel.ojyama_basepos_from.y >= 1) {
+                panel.ojyama_basepos_from.y -= 1;
+                panel.is_mark_be_panel = false;
+            }
+            else {
+                panel.is_mark_be_panel = true;
+            }
+        }
+    }
+
+    if (ojyama->height >= 1) {
         ojyama->height -= 1;
     }
+}
+
+const Panel& OjyamaPanel::GetBasePanel() const
+{
+    return m_PanelContainer->GetPanel(m_BasePos.x, m_BasePos.y);
 }
 
 void OjyamaPanel::SetUpdated()

@@ -57,7 +57,12 @@ private:
 	void judgeGameOver();
 	void deletePanel();
 	void changeState_PanelsDeleting();
+
+    void uncompressOjyama();
+    void markUncompressOjyama(int x, int y);
+    void setUncompressOjyamaTimer();
 	int countDeleteMarkPanel();
+    int countDeleteMarkUncompress();
 	
 	void update_PanelDefault(int x, int y, Panel& panel);
 	void update_PanelSwapping(int x, int y, Panel& panel);

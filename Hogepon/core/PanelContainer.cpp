@@ -46,9 +46,40 @@ void PanelContainer::SetPanel(int x, int y, const Panel& panel)
 	m_Panels[y * m_RealWidth + x] = panel;
 }
 
+PanelCreator& PanelContainer::GetPanelCreator()
+{
+    return m_PanelCreator;
+}
+
 OjyamaPanel PanelContainer::GetOjyamaPanel(uint32_t ojyama_id)
 {
     return OjyamaPanel(this, ojyama_id);
+}
+
+PanelContainer::OjyamaPanelVec PanelContainer::GetOjyamaPanelListOnField()
+{
+    std::vector<uint32_t> find_ojyama_list;
+    OjyamaPanelVec ojyama_list;
+
+    for (int y = FieldBottom(); y <= FieldTop(); ++y) {
+        for (int x = FieldLeft(); x <= FieldRight(); ++x) {
+            const Panel& panel = GetPanel(x, y);
+
+            if (panel.type == Panel::TYPE_OJYAMA) {
+                uint32_t id = panel.ojyama->id;
+
+                auto result = std::find( find_ojyama_list.begin(), find_ojyama_list.end(), id );
+                if (result == find_ojyama_list.end()) {
+                    find_ojyama_list.push_back(id);
+
+                    OjyamaPanel ojyama(this, x, y, panel);
+                    ojyama_list.push_back(ojyama);
+                }
+            }
+        }
+    }
+
+    return ojyama_list;
 }
 
 void PanelContainer::ClearOjyamaUpdated()

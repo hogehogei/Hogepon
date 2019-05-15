@@ -53,10 +53,13 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
 
 	int draw_x = calculateDrawPos_X(gamelogic, panel, x);
 	int draw_y = calculateDrawPos_Y(gamelogic, panel, y);
+    
+    const s3d::String& back_id = m_PanelSubTexTable[panel.color].back_identifier;
+    const s3d::String& mark_id = m_PanelSubTexTable[panel.color].mark_identifier;
 
+    // delete after wait のときは、
+    // パネルが消えた直後で、スペース表示をしたいので表示させない
     if (panel.type == Panel::TYPE_PANEL && panel.state != Panel::STATE_DELETE_AFTER_WAIT) {
-        const s3d::String& back_id = m_PanelSubTexTable[panel.color].back_identifier;
-        const s3d::String& mark_id = m_PanelSubTexTable[panel.color].mark_identifier;
 
         // 最下段の下（ネクストパネル）は少し暗くして描写
         if (y == pcont.FieldNextLine()) {
@@ -69,8 +72,26 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
             m_PanelTexture.SubTexture(mark_id).draw(draw_x, draw_y);
         }
     }
+
     if (panel.type == Panel::TYPE_OJYAMA) {
-        s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0xFF, 0xFF, 0xFF));
+        if (panel.state == Panel::STATE_UNCOMPRESS_BEFORE_WAIT) {
+            s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0x00, 0x00, 0xFF));
+        }
+        else if (panel.state == Panel::STATE_UNCOMPRESS) {
+            s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0x00, 0x00, 0xFF));
+        }
+        else if (panel.state == Panel::STATE_UNCOMPRESS_AFTER_WAIT) {
+            if (panel.is_mark_be_panel) {
+                m_PanelTexture.SubTexture(back_id).draw(draw_x, draw_y);
+                m_PanelTexture.SubTexture(mark_id).draw(draw_x, draw_y);
+            }
+            else {
+                s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0xFF, 0xFF, 0xFF));
+            }
+        }
+        else {
+            s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0xFF, 0xFF, 0xFF));
+        }
     }
 }
 

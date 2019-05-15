@@ -77,6 +77,7 @@ void GameLogic::Update()
 
 	doSeriagari();
 	deletePanel();
+    uncompressOjyama();
 	judgeGameOver();
 
     // 連鎖終了ならチェインカウントを戻そう
@@ -275,6 +276,8 @@ void GameLogic::judgeGameOver()
 	else {
 		// ゲームオーバー寸前？
 		if (m_State.IsDanger()) {
+            // [TODO] ここの判定条件は確認すること
+            // お邪魔消去中もゲームオーバーにならないが、それが考慮されていない？
 			if (m_State.IsSeriagari()) {
 				m_State.SetState(GameState::STATE_GAME_OVER);
 			}
@@ -413,6 +416,85 @@ void GameLogic::changeState_PanelsDeleting()
 	}
 }
 
+void GameLogic::uncompressOjyama()
+{
+    for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldTop(); ++y) {
+        for (int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x) {
+            // 消去パネル周辺のお邪魔パネルに解凍マークをつける
+            if (m_PanelContainer.GetPanel(x, y).is_mark_delete) {
+                markUncompressOjyama(x - 1, y);
+                markUncompressOjyama(x + 1, y);
+                markUncompressOjyama(x, y - 1);
+                markUncompressOjyama(x, y + 1);
+            }
+        }
+    }
+
+    // 解凍マークがついているお邪魔パネルは最下段だけ解凍
+    auto ojyama_list = m_PanelContainer.GetOjyamaPanelListOnField();
+    for (auto itr = ojyama_list.begin(); itr != ojyama_list.end(); ++itr) {
+        const Panel& basepanel = itr->GetBasePanel();
+        if (basepanel.is_mark_uncompress) {
+            itr->UncompressBottomLine();
+        }
+    }
+
+    setUncompressOjyamaTimer();
+}
+
+void GameLogic::markUncompressOjyama(int x, int y)
+{
+    // フィールド外だったら何もしない
+    if (!m_PanelContainer.Is_InField(x, y)) {
+        return;
+    }
+
+    Panel& panel = m_PanelContainer.GetPanel(x, y);
+    // すでにマーク済みでなく、落下中、消去中でなければ消す
+    // [TODO] お邪魔パネルも！マークとそうでないものは同時に消えない
+    // お邪魔パネルのタイプを持たせるしかない
+    if (panel.is_mark_uncompress == false &&
+        panel.type == Panel::TYPE_OJYAMA && 
+        panel.state == Panel::STATE_DEFAULT) {
+
+        panel.is_mark_uncompress = true;
+
+        // 周囲のお邪魔パネルも再帰処理で判定
+        markUncompressOjyama(x - 1, y);
+        markUncompressOjyama(x + 1, y);
+        markUncompressOjyama(x, y - 1);
+        markUncompressOjyama(x, y + 1);
+    }
+}
+
+void GameLogic::setUncompressOjyamaTimer()
+{
+    // 消去対象のパネルは is_mark_be_panel == true となるので
+    // 最下段からお邪魔消去タイマーをセットする
+    int delete_panel_num = countDeleteMarkPanel();
+    int uncompress_panel_num = countDeleteMarkUncompress();
+    int uncompress_wait_per_panel = m_FieldSetting.WaitTimePanelDel();
+    int uncompress_time_max = uncompress_wait_per_panel * uncompress_panel_num;
+    int uncompress_cnt = 0;
+
+    bool is_chain = false;
+
+    for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldTop(); ++y) {
+        for (int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x) {
+            Panel& panel = m_PanelContainer.GetPanel(x, y);
+
+            if (panel.is_mark_uncompress){
+                ++uncompress_cnt;
+
+                panel.state = Panel::STATE_UNCOMPRESS_BEFORE_WAIT;
+                panel.delete_before_wait = m_FieldSetting.UncompressBeforeWait() + (delete_panel_num * uncompress_wait_per_panel);
+                panel.delete_wait = uncompress_wait_per_panel * uncompress_cnt;
+                panel.delete_after_wait = uncompress_time_max - panel.delete_wait + 1;
+            }
+        }
+    }
+}
+
 int GameLogic::countDeleteMarkPanel()
 {
 	int delete_panel_count = 0;
@@ -425,6 +507,20 @@ int GameLogic::countDeleteMarkPanel()
 	}
 
 	return delete_panel_count;
+}
+
+int GameLogic::countDeleteMarkUncompress()
+{
+    int uncompress_panel_count = 0;
+    for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldTop(); ++y) {
+        for (int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x) {
+            if (m_PanelContainer.GetPanel(x, y).is_mark_be_panel) {
+                ++uncompress_panel_count;
+            }
+        }
+    }
+
+    return uncompress_panel_count;
 }
 
 void GameLogic::updatePanel(int x, int y)
@@ -681,7 +777,7 @@ void GameLogic::updateOjyamaPanel( int x, int y )
         break;
 
     case Panel::STATE_UNCOMPRESS_BEFORE_WAIT:
-        update_OjyamaUncompressAfterWait(x, y);
+        update_OjyamaUncompressBeforeWait(x, y);
         break;
 
     case Panel::STATE_UNCOMPRESS:
@@ -846,9 +942,9 @@ void GameLogic::update_OjyamaUncompressBeforeWait(int x, int y)
 {
     // 消去中は個別にカウンタを更新する
     Panel& panel = m_PanelContainer.GetPanel(x, y);
-    panel.delete_before_wait += m_FieldSetting.IncOjyamaPanelDeleteBeforeWait();
+    panel.delete_before_wait -= m_FieldSetting.DecOjyamaPanelDeleteBeforeWait();
 
-    if (panel.delete_before_wait >= m_FieldSetting.OjyamaPanelDeleteBeforeWaitMax()) {
+    if (panel.delete_before_wait <= 0 ) {
         panel.state = Panel::STATE_UNCOMPRESS;
     }
 }
@@ -861,8 +957,6 @@ void GameLogic::update_OjyamaUncompress(int x, int y)
     panel.delete_wait -= m_FieldSetting.DecOjyamaPanelDeleteWait();
     if (panel.delete_wait <= 0) {
         panel.state = Panel::STATE_UNCOMPRESS_AFTER_WAIT;
-        //exlib::IEventDataPtr event(new PanelDeletedEvent(mPlayerID, exlib::Vector2<int>(x, y)));
-        //exlib::EventManager::instance()->queueEvent(event);
     }
 }
 
@@ -877,10 +971,10 @@ void GameLogic::update_OjyamaUncompressAfterWait(int x, int y)
 
     if (panel.delete_after_wait <= 0) {
 
-        panel.Reset();
-        panel.state = Panel::STATE_DEFAULT;
+        panel.state = Panel::STATE_FALL_BEFORE_WAIT;
         // お邪魔パネルの最下段ならパネルになる。それ以外ならお邪魔パネルのまま
-        if (panel.is_be_panel) {
+        if (panel.is_mark_be_panel) {
+            panel.Reset();
             panel.type = Panel::TYPE_PANEL;
             // お邪魔パネル情報をクリア
             panel.ojyama.reset();
@@ -888,6 +982,7 @@ void GameLogic::update_OjyamaUncompressAfterWait(int x, int y)
             panel.is_chain_seed = true;
         }
         else {
+            panel.Reset();
             panel.type  = Panel::TYPE_OJYAMA;
         }
     }

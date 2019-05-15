@@ -12,7 +12,7 @@ void Main()
 
 	while (System::Update())
 	{
-		gamelogic.Update();
-		drawer.Draw( gamelogic );
+            gamelogic.Update();
+            drawer.Draw(gamelogic);
 	}
 }
