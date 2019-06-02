@@ -9,8 +9,8 @@ GameFieldSetting::GameFieldSetting(const s3d::String& filepath)
 	m_IncAutoSeriagari(0),
 	m_SeriagariCountMax(0),
 	m_GameOverTimeLimit(0),
-	m_IncPanelDeleteBeforeWait(0),
-	m_PanelDeleteBeforeWaitMax(0),
+	m_DecPanelDeleteBeforeWait(0),
+	m_DeleteBeforeWait(0),
 	m_WaitTimePanelDel(0),
 	m_DecPanelDeleteWait(0),
 	m_DecPanelDeleteAfterWait(0),
@@ -55,8 +55,8 @@ void GameFieldSetting::parseGameFieldSettings(const s3d::XMLElement& elem)
 	m_GameOverTimeLimit        = s3d::Parse<int>(elem.attribute(U"GameOverTimeLimit").value_or(U"0"));
 
 	// ÉpÉlÉãè¡ãéä÷òA
-	m_IncPanelDeleteBeforeWait = s3d::Parse<int>(elem.attribute(U"IncPanelDeleteBeforeWait").value_or(U"0"));
-	m_PanelDeleteBeforeWaitMax = s3d::Parse<int>(elem.attribute(U"PanelDeleteBeforeWaitMax").value_or(U"0"));
+	m_DecPanelDeleteBeforeWait = s3d::Parse<int>(elem.attribute(U"DecPanelDeleteBeforeWait").value_or(U"0"));
+	m_DeleteBeforeWait         = s3d::Parse<int>(elem.attribute(U"DeleteBeforeWait").value_or(U"0"));
 	m_WaitTimePanelDel         = s3d::Parse<int>(elem.attribute(U"WaitTimePanelDel").value_or(U"0"));
 	m_DecPanelDeleteWait       = s3d::Parse<int>(elem.attribute(U"DecPanelDeleteWait").value_or(U"0"));
 	m_DecPanelDeleteAfterWait  = s3d::Parse<int>(elem.attribute(U"DecPanelDeleteAfterWait").value_or(U"0"));
@@ -77,7 +77,7 @@ void GameFieldSetting::parseGameFieldSettings(const s3d::XMLElement& elem)
     m_DecOjyamaPanelDeleteBeforeWait = s3d::Parse<int>(elem.attribute(U"DecOjyamaPanelDeleteBeforeWait").value_or(U"0"));
     m_DecOjyamaPanelDeleteWait       = s3d::Parse<int>(elem.attribute(U"DecOjyamaPanelDeleteWait").value_or(U"0"));
     m_DecOjyamaPanelDeleteAfterWait  = s3d::Parse<int>(elem.attribute(U"DecOjyamaPanelDeleteAfterWait").value_or(U"0"));
-    m_UncompressBeforeWait           = s3d::Parse<int>(elem.attribute(U"UncompressbeforeWait").value_or(U"0"));
+    m_UncompressBeforeWait           = s3d::Parse<int>(elem.attribute(U"UncompressBeforeWait").value_or(U"0"));
 }
 
 void GameFieldSetting::parseFieldInfo(const s3d::XMLElement& elem)

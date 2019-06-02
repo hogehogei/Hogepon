@@ -3,7 +3,7 @@
 #include "core/OjyamaPanel.hpp"
 #include "core/PanelContainer.hpp"
 
-OjyamaPanel::OjyamaPanel(PanelContainer* container, int ojyama_id)
+OjyamaPanel::OjyamaPanel(PanelContainer* container, int x, int y)
     : 
     m_OjyamaInfo(),
     m_PanelContainer(container)
@@ -14,48 +14,16 @@ OjyamaPanel::OjyamaPanel(PanelContainer* container, int ojyama_id)
     }
     
     PanelContainer* panel_field = m_PanelContainer;
-    // フィールド上のお邪魔パネルを検索する。
-    // 左下の位置を基準とすることとしているので、自分のお邪魔パネルがみつかれば
-    // そのお邪魔パネルから情報を取得
-    bool is_found = false;
-    for (int y = panel_field->FieldBottom(); y <= panel_field->FieldNewOjyamaLine() && !is_found; ++y) {
-        for (int x = panel_field->FieldLeft(); x <= panel_field->FieldRight() && !is_found; ++x) {
-            const Panel& panel = panel_field->GetPanel(x, y);
-            if ( panel.ojyama && panel.ojyama->id == ojyama_id) {
-                m_OjyamaInfo = panel.ojyama;
-                calculateBasePos(x, y, panel);
-                is_found = true;
-            }
-        }
-    }
-
-    // 自分のお邪魔パネルがフィールド上にない場合、is_found は false
-    // その場合はバグ。
-    if (!is_found) {
-        assert(0 && "No OjyamaPanel found. IT MUST BE BUG");
-    }
-}
-
-OjyamaPanel::OjyamaPanel(PanelContainer* container, int x, int y, const Panel& panel)
-    :
-    m_OjyamaInfo(),
-    m_PanelContainer(container)
-{
-    // 引数のパネルコンテナが不正だったらバグ
-    if (!container) {
-        assert(0 && "Argument \'panels\' is null. IT MUST BE BUG");
-    }
-
-    if (panel.type == Panel::TYPE_OJYAMA && panel.ojyama) {
+    const Panel& panel = panel_field->GetPanel(x, y);
+    if ( panel.type == Panel::TYPE_OJYAMA && panel.ojyama ) {
         m_OjyamaInfo = panel.ojyama;
-        calculateBasePos(x, y, panel);
+        m_BasePos.x = x - panel.ojyama_basepos_from.x;
+        m_BasePos.y = y - panel.ojyama_basepos_from.y;
     }
-}
-
-void OjyamaPanel::calculateBasePos(int x, int y, const Panel& panel)
-{
-    m_BasePos.x = x - panel.ojyama_basepos_from.x;
-    m_BasePos.y = y - panel.ojyama_basepos_from.y;
+    // お邪魔パネルでない場合はバグ。
+    else {
+        assert(0 && "This is not OjyamaPanel. IT MUST BE BUG");
+    }
 }
 
 void OjyamaPanel::SetOjyamaPanel(const Panel& setpanel)
@@ -235,4 +203,91 @@ bool OjyamaPanel::IsUpdated() const
     }
 
     return ojyama->is_updated;
+}
+
+
+
+
+OjyamaInfo::OjyamaInfo(const PanelContainer* container, int x, int y)
+    :
+    m_OjyamaInfo(),
+    m_PanelContainer(container)
+{
+    // 引数のパネルコンテナが不正だったらバグ
+    if (!container) {
+        assert(0 && "Argument \'panels\' is null. IT MUST BE BUG");
+    }
+
+    const Panel& panel = m_PanelContainer->GetPanel(x, y);
+    if (panel.type == Panel::TYPE_OJYAMA && panel.ojyama) {
+        m_OjyamaInfo = panel.ojyama;
+        m_BasePos.x = x - panel.ojyama_basepos_from.x;
+        m_BasePos.y = y - panel.ojyama_basepos_from.y;
+    }
+    // お邪魔パネルでない場合はバグ。
+    else {
+        assert(0 && "This is not OjyamaPanel. IT MUST BE BUG");
+    }
+}
+
+OjyamaInfo::Part OjyamaInfo::GetPart(int x, int y) const
+{
+    auto ojyama = m_OjyamaInfo.lock();
+    if (!ojyama) {
+        assert(0 && "OjyamaPanel has already deleted. IT MUST BE BUG");
+    }
+
+    int w = ojyama->width;
+    int h = ojyama->height;
+    if (y < m_BasePos.y || y >(m_BasePos.y + h) ||
+        x < m_BasePos.x || x >(m_BasePos.x + w)) {
+        return OjyamaInfo::OutRange;
+    }
+
+    if (h == 1) {
+        if (x == m_BasePos.x ){
+            return OjyamaInfo::OneLine_Left;
+        }
+        else if (x == (m_BasePos.x + w)) {
+            return OjyamaInfo::OneLine_Right;
+        }
+        else {
+            return OjyamaInfo::OneLine_Center;
+        }
+    }
+    else {
+        if (y == m_BasePos.y) {
+            if (x == m_BasePos.x) {
+                return OjyamaInfo::MultiLine_BottomLeft;
+            }
+            else if (x == (m_BasePos.x + w)) {
+                return OjyamaInfo::MultiLine_BottomRight;
+            }
+            else {
+                return OjyamaInfo::MultiLine_BottomCenter;
+            }
+        }
+        else if (y == (m_BasePos.y + h)) {
+            if (x == m_BasePos.x) {
+                return OjyamaInfo::MultiLine_TopLeft;
+            }
+            else if (x == (m_BasePos.x + w)) {
+                return OjyamaInfo::MultiLine_TopRight;
+            }
+            else {
+                return OjyamaInfo::MultiLine_TopCenter;
+            }
+        }
+        else {
+            if (x == m_BasePos.x) {
+                return OjyamaInfo::MultiLine_MiddleLeft;
+            }
+            else if (x == (m_BasePos.x + w)) {
+                return OjyamaInfo::MultiLine_MiddleRight;
+            }
+            else {
+                return OjyamaInfo::MultiLine_MiddleCenter;
+            }
+        }
+    }
 }

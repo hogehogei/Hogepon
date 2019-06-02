@@ -15,9 +15,14 @@ public:
 
 private:
 	
+    void readDrawSetting(const s3d::String& filepath);
 	void drawCursor(const GameLogic& gamelogic);
 
 	PanelDrawer2D m_PanelDrawer2D;
     SubTextures   m_CursorTexture;
     s3d::Texture  m_FrameTexture;
+
+    int m_PanelSize;
+    int m_LowerLeft_X;
+    int m_LowerLeft_Y;
 };

@@ -28,9 +28,9 @@ public:
 
     PanelCreator& GetPanelCreator();
 
-    OjyamaPanel GetOjyamaPanel(uint32_t ojyama_id);
+    OjyamaPanel GetOjyamaPanel(int x, int y);
+    OjyamaInfo GetOjyamaInfo(int x, int y) const;
     OjyamaPanelVec GetOjyamaPanelListOnField();
-
 
 	bool Is_InFieldCursor(int x, int y) const;
 	bool Is_InField(int x, int y) const;

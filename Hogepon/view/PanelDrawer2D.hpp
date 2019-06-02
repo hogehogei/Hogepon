@@ -32,10 +32,12 @@ public:
 private:
 
 	void drawPanel(const GameLogic& gamelogic, int x, int y);
+    s3d::TextureRegion getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y);
 
 	int calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x);
 	int calculateDrawPos_Y(const GameLogic& gamelogic, const Panel& panel, int y);
 
 	PanelDrawer2D::DrawSetting m_DrawSetting;
     SubTextures m_PanelTexture;
+    SubTextures m_OjyamaTexture;
 };

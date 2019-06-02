@@ -26,6 +26,7 @@ PanelDrawer2D::PanelDrawer2D()
 	: m_DrawSetting()
 {
     m_PanelTexture.ReadSetting(U"setting/drawpanel_2d.xml");
+    m_OjyamaTexture.ReadSetting(U"setting/ojyama_2d.xml");
 }
 
 PanelDrawer2D::~PanelDrawer2D()
@@ -61,7 +62,7 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
     // パネルが消えた直後で、スペース表示をしたいので表示させない
     if (panel.type == Panel::TYPE_PANEL && panel.state != Panel::STATE_DELETE_AFTER_WAIT) {
 
-        // 最下段の下（ネクストパネル）は少し暗くして描写
+        // ネクストパネルは少し暗くして描写
         if (y == pcont.FieldNextLine()) {
             m_PanelTexture.SubTexture(back_id).draw(draw_x, draw_y, s3d::Color(0x50, 0x50, 0x50));
             m_PanelTexture.SubTexture(mark_id).draw(draw_x, draw_y, s3d::Color(0x50, 0x50, 0x50));
@@ -86,13 +87,68 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
                 m_PanelTexture.SubTexture(mark_id).draw(draw_x, draw_y);
             }
             else {
-                s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0xFF, 0xFF, 0xFF));
+                s3d::TextureRegion subtexture = getOjyamaSubTexture(gamelogic, x, y);
+                subtexture.draw(draw_x, draw_y);
             }
         }
         else {
-            s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0xFF, 0xFF, 0xFF));
+            s3d::TextureRegion subtexture = getOjyamaSubTexture(gamelogic, x, y);
+            subtexture.draw(draw_x, draw_y);
         }
     }
+}
+
+s3d::TextureRegion PanelDrawer2D::getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y)
+{
+    const PanelContainer& pcont = gamelogic.GetPanelContainer();
+    const Panel& panel = pcont.GetPanel(x, y);
+    OjyamaInfo ojyama = pcont.GetOjyamaInfo(x, y);
+
+    s3d::TextureRegion region;
+
+    switch (ojyama.GetPart(x, y)) {
+    case OjyamaInfo::OneLine_Left:
+        region = m_OjyamaTexture.SubTexture(U"OneLine_Left");
+        break;
+    case OjyamaInfo::OneLine_Center:
+        region = m_OjyamaTexture.SubTexture(U"OneLine_Center");
+        break;
+    case OjyamaInfo::OneLine_Right:
+        region = m_OjyamaTexture.SubTexture(U"OneLine_Right");
+        break;
+    case OjyamaInfo::MultiLine_TopLeft:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_TopLeft");
+        break;
+    case OjyamaInfo::MultiLine_TopCenter:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_TopCenter");
+        break;
+    case OjyamaInfo::MultiLine_TopRight:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_TopRight");
+        break;
+    case OjyamaInfo::MultiLine_MiddleLeft:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_MiddleLeft");
+        break;
+    case OjyamaInfo::MultiLine_MiddleCenter:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_MiddleCenter");
+        break;
+    case OjyamaInfo::MultiLine_MiddleRight:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_MiddleRight");
+        break;
+    case OjyamaInfo::MultiLine_BottomLeft:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_BottomLeft");
+        break;
+    case OjyamaInfo::MultiLine_BottomCenter:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_BottomCenter");
+        break;
+    case OjyamaInfo::MultiLine_BottomRight:
+        region = m_OjyamaTexture.SubTexture(U"MultiLine_BottomRight");
+        break;
+    case OjyamaInfo::OutRange:
+    default:
+        break;
+    }
+
+    return region;
 }
 
 int PanelDrawer2D::calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x)

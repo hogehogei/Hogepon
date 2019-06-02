@@ -24,8 +24,8 @@ public:
 	int GameOverTimeLimit() const { return m_GameOverTimeLimit; }
 
 	// ÉpÉlÉãè¡ãéä÷òA
-	int IncPanelDeleteBeforeWait() const { return m_IncPanelDeleteBeforeWait; }
-	int PanelDeleteBeforeWaitMax() const { return m_PanelDeleteBeforeWaitMax; }
+	int DecPanelDeleteBeforeWait() const { return m_DecPanelDeleteBeforeWait; }
+	int DeleteBeforeWait() const { return m_DeleteBeforeWait; }
 	int WaitTimePanelDel() const { return m_WaitTimePanelDel; }
 	int DecPanelDeleteWait() const { return m_DecPanelDeleteWait; }
 	int DecPanelDeleteAfterWait() const { return m_DecPanelDeleteAfterWait; }
@@ -61,8 +61,8 @@ private:
 
 	int m_GameOverTimeLimit;
 
-    int m_IncPanelDeleteBeforeWait;
-    int m_PanelDeleteBeforeWaitMax;
+    int m_DecPanelDeleteBeforeWait;
+    int m_DeleteBeforeWait;
 	int m_WaitTimePanelDel;
 	int m_DecPanelDeleteWait;
 	int m_DecPanelDeleteAfterWait;

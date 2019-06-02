@@ -51,9 +51,14 @@ PanelCreator& PanelContainer::GetPanelCreator()
     return m_PanelCreator;
 }
 
-OjyamaPanel PanelContainer::GetOjyamaPanel(uint32_t ojyama_id)
+OjyamaPanel PanelContainer::GetOjyamaPanel(int x, int y)
 {
-    return OjyamaPanel(this, ojyama_id);
+    return OjyamaPanel(this, x, y);
+}
+
+OjyamaInfo PanelContainer::GetOjyamaInfo(int x, int y) const
+{
+    return OjyamaInfo(this, x, y);
 }
 
 PanelContainer::OjyamaPanelVec PanelContainer::GetOjyamaPanelListOnField()
@@ -72,7 +77,7 @@ PanelContainer::OjyamaPanelVec PanelContainer::GetOjyamaPanelListOnField()
                 if (result == find_ojyama_list.end()) {
                     find_ojyama_list.push_back(id);
 
-                    OjyamaPanel ojyama(this, x, y, panel);
+                    OjyamaPanel ojyama(this, x, y);
                     ojyama_list.push_back(ojyama);
                 }
             }

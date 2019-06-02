@@ -89,13 +89,12 @@ public:
     PanelPos move_from;
 
     // タイマー変数
-    // uint32_t 型のカウンタは16.16の固定小数値として用いる
 	int      delete_before_wait;		// 消去前ウェイト
     int		 delete_wait;				// 消去中ウェイト
     int		 delete_after_wait;			// 消去後ウェイト
-	uint32_t swapping_count;			// 交換時カウンタ
+	int      swapping_count;			// 交換時カウンタ
     int		 fall_before_wait;			// パネル落下前ウェイト
-    uint32_t fall_count;				// 落下時カウンタ
+    int      fall_count;				// 落下時カウンタ
     int		 fall_after_wait;			// 落下後ウェイト
     bool     is_chain_seed;				// 連鎖フラグ
 	bool     is_mark_delete;			// パネル消去フラグ（消去チェック時に使用する）
@@ -103,6 +102,9 @@ public:
 
     // オジャマパネル関連
     bool     is_mark_be_panel;          // 解凍されてパネルになるか？
+    int      uncompress_before_wait;
+    int      uncompress_wait;
+    int      uncompress_after_wait;
     PanelPos ojyama_basepos_from;       // お邪魔パネルのベース位置からの距離
     std::shared_ptr<Ojyama> ojyama;     // オジャマパネルへの情報
 

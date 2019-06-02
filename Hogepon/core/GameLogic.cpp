@@ -159,7 +159,7 @@ bool GameLogic::swapPanel()
 		if ((above_panel_left.type == Panel::TYPE_PANEL &&
 			above_panel_left.state == Panel::STATE_FALL_BEFORE_WAIT) ||
 			(above_panel_right.type == Panel::TYPE_PANEL &&
-				above_panel_right.state == Panel::STATE_FALL_BEFORE_WAIT)) {
+		    above_panel_right.state == Panel::STATE_FALL_BEFORE_WAIT)) {
 			return false;
 		}
 	}
@@ -167,8 +167,8 @@ bool GameLogic::swapPanel()
 	// 交換できるパネルか？
 	bool isValidTypeLeft = left.type == Panel::TYPE_PANEL || left.type == Panel::TYPE_SPACE;
 	bool isValidTypeRight = right.type == Panel::TYPE_PANEL || right.type == Panel::TYPE_SPACE;
-    bool isValidStateLeft = left.state == Panel::STATE_DEFAULT || left.state == Panel::STATE_NONE || left.state == Panel::STATE_FALL_AFTER_WAIT || left.state == Panel::STATE_DELETE_AFTER_WAIT;
-	bool isValidStateRight = right.state == Panel::STATE_DEFAULT || right.state == Panel::STATE_NONE || right.state == Panel::STATE_FALL_AFTER_WAIT || right.state == Panel::STATE_DELETE_AFTER_WAIT;
+    bool isValidStateLeft = left.state == Panel::STATE_DEFAULT || left.state == Panel::STATE_NONE || left.state == Panel::STATE_FALL_AFTER_WAIT;
+    bool isValidStateRight = right.state == Panel::STATE_DEFAULT || right.state == Panel::STATE_NONE || right.state == Panel::STATE_FALL_AFTER_WAIT;
 
 	if (!(isValidTypeLeft && isValidTypeRight && isValidStateLeft && isValidStateRight)) {
 		return false;
@@ -397,7 +397,7 @@ void GameLogic::changeState_PanelsDeleting()
                 ++delete_panel_cnt;
 
 				panel.state = Panel::STATE_DELETE_BEFORE_WAIT;
-				panel.delete_before_wait = 0;
+				panel.delete_before_wait = m_FieldSetting.DeleteBeforeWait();
                 panel.delete_wait = delete_wait_per_panel * delete_panel_cnt;
                 panel.delete_after_wait = delete_time_max - panel.delete_wait + 1;
 
@@ -485,11 +485,11 @@ void GameLogic::setUncompressOjyamaTimer()
 
             if (panel.is_mark_uncompress){
                 ++uncompress_cnt;
-
+                
                 panel.state = Panel::STATE_UNCOMPRESS_BEFORE_WAIT;
-                panel.delete_before_wait = m_FieldSetting.UncompressBeforeWait() + (delete_panel_num * uncompress_wait_per_panel);
-                panel.delete_wait = uncompress_wait_per_panel * uncompress_cnt;
-                panel.delete_after_wait = uncompress_time_max - panel.delete_wait + 1;
+                panel.uncompress_before_wait = m_FieldSetting.UncompressBeforeWait() + (delete_panel_num * uncompress_wait_per_panel);
+                panel.uncompress_wait = uncompress_wait_per_panel * uncompress_cnt;
+                panel.uncompress_after_wait = uncompress_time_max - panel.uncompress_wait + 1;
             }
         }
     }
@@ -514,7 +514,7 @@ int GameLogic::countDeleteMarkUncompress()
     int uncompress_panel_count = 0;
     for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldTop(); ++y) {
         for (int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x) {
-            if (m_PanelContainer.GetPanel(x, y).is_mark_be_panel) {
+            if (m_PanelContainer.GetPanel(x, y).is_mark_uncompress) {
                 ++uncompress_panel_count;
             }
         }
@@ -598,7 +598,7 @@ void GameLogic::update_PanelSwapping(int x, int y, Panel& panel)
 				panel.fall_before_wait = 0;
 				panel.state = Panel::STATE_FALL_BEFORE_WAIT;
 			}
-			else if (under_panel.type == Panel::TYPE_PANEL) {
+			else {
 				panel.Reset();
 				panel.state = Panel::STATE_DEFAULT;
 			}
@@ -662,7 +662,7 @@ void GameLogic::update_PanelFalling(int x, int y, Panel& panel)
 			if (check.type == Panel::TYPE_SPACE) {
 				under_panel.is_chain_seed = panel.is_chain_seed;
 				// 滑り込ませ連鎖できるか？
-				if (under_panel.swapping_count == (m_FieldSetting.SwappingCountMax() - 1) ) {
+				if (under_panel.swapping_count == 0 ) {
 					// STATE_FALL_AFTER_WAIT に切り替えることで
 					// パネルが消せるようにする
 					panel.state = Panel::STATE_FALL_AFTER_WAIT;
@@ -703,8 +703,8 @@ void GameLogic::update_PanelFallAfterWait(int x, int y, Panel& panel)
 
 void GameLogic::update_PanelDeleteBeforeWait(Panel& panel)
 {
-	panel.delete_before_wait += m_FieldSetting.IncPanelDeleteBeforeWait();
-	if (panel.delete_before_wait >= m_FieldSetting.PanelDeleteBeforeWaitMax() ) {
+	panel.delete_before_wait -= m_FieldSetting.DecPanelDeleteBeforeWait();
+	if (panel.delete_before_wait <= 0 ) {
 		panel.state = Panel::STATE_DELETE;
 	}
 }
@@ -802,7 +802,7 @@ void GameLogic::update_OjyamaDefault(int x, int y)
     }
 
     // お邪魔パネルはIDごとにアップデートする
-    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(x, y);
     // このパネルに状態もろもろセットする
     Panel setpanel = panel;
     Panel under_panel;
@@ -831,7 +831,7 @@ void GameLogic::update_OjyamaFallBeforeWait(int x, int y)
     }
 
     // お邪魔パネルはIDごとにアップデートする
-    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(x, y);
     // このパネルに状態もろもろセットする
     Panel setpanel = panel;
     Panel under_panel;
@@ -873,7 +873,7 @@ void GameLogic::update_OjyamaFalling(int x, int y)
     }
 
     // お邪魔パネルはIDごとにアップデートする
-    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(x, y);
     // このパネルに状態もろもろセットする
     Panel setpanel = panel;
     Panel under_panel;
@@ -916,7 +916,7 @@ void GameLogic::update_OjyamaFallAfterWait(int x, int y)
     }
 
     // お邪魔パネルはIDごとにアップデートする
-    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(x, y);
     // このパネルに状態もろもろセットする
     Panel setpanel = panel;
     Panel under_panel;
@@ -942,9 +942,9 @@ void GameLogic::update_OjyamaUncompressBeforeWait(int x, int y)
 {
     // 消去中は個別にカウンタを更新する
     Panel& panel = m_PanelContainer.GetPanel(x, y);
-    panel.delete_before_wait -= m_FieldSetting.DecOjyamaPanelDeleteBeforeWait();
+    panel.uncompress_before_wait -= m_FieldSetting.DecOjyamaPanelDeleteBeforeWait();
 
-    if (panel.delete_before_wait <= 0 ) {
+    if (panel.uncompress_before_wait <= 0 ) {
         panel.state = Panel::STATE_UNCOMPRESS;
     }
 }
@@ -954,8 +954,8 @@ void GameLogic::update_OjyamaUncompress(int x, int y)
     // 消去中は個別にカウンタを更新する
     Panel& panel = m_PanelContainer.GetPanel(x, y);
 
-    panel.delete_wait -= m_FieldSetting.DecOjyamaPanelDeleteWait();
-    if (panel.delete_wait <= 0) {
+    panel.uncompress_wait -= m_FieldSetting.DecOjyamaPanelDeleteWait();
+    if (panel.uncompress_wait <= 0) {
         panel.state = Panel::STATE_UNCOMPRESS_AFTER_WAIT;
     }
 }
@@ -965,11 +965,11 @@ void GameLogic::update_OjyamaUncompressAfterWait(int x, int y)
     // 消去中は個別にカウンタを更新する
     Panel& panel = m_PanelContainer.GetPanel(x, y);
     // お邪魔パネルはIDごとにアップデートする
-    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(panel.ojyama->id);
+    OjyamaPanel ojyama_panel = m_PanelContainer.GetOjyamaPanel(x, y);
 
-    panel.delete_after_wait -= m_FieldSetting.DecOjyamaPanelDeleteAfterWait();
+    panel.uncompress_after_wait -= m_FieldSetting.DecOjyamaPanelDeleteAfterWait();
 
-    if (panel.delete_after_wait <= 0) {
+    if (panel.uncompress_after_wait <= 0) {
 
         panel.state = Panel::STATE_FALL_BEFORE_WAIT;
         // お邪魔パネルの最下段ならパネルになる。それ以外ならお邪魔パネルのまま
@@ -982,7 +982,7 @@ void GameLogic::update_OjyamaUncompressAfterWait(int x, int y)
             panel.is_chain_seed = true;
         }
         else {
-            panel.Reset();
+            // panel.Reset();
             panel.type  = Panel::TYPE_OJYAMA;
         }
     }

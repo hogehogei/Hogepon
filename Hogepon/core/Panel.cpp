@@ -15,6 +15,9 @@ Panel::Panel()
 	is_mark_delete(false),
     is_mark_uncompress(false),
     is_mark_be_panel(false),
+    uncompress_before_wait(0),
+    uncompress_wait(0),
+    uncompress_after_wait(0),
     ojyama_basepos_from(),
     ojyama(nullptr),
     type( TYPE_SPACE ),
@@ -45,7 +48,10 @@ void Panel::Reset()
     is_chain_seed      = false;
 	is_mark_delete     = false;
     
-    is_mark_be_panel = false;
+    is_mark_be_panel       = false;
+    uncompress_before_wait = 0;
+    uncompress_wait        = 0;
+    uncompress_after_wait  = 0;
     ojyama_basepos_from = PanelPos(0, 0);
 
     // type, state, color, お邪魔パネルの情報は
