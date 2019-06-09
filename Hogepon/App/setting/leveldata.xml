@@ -15,7 +15,7 @@
    IncFallCount="1"
    FallCountMax="1"
    IncFallAfterWait="1"
-   FallAfterWaitMax="2"
+   FallAfterWaitMax="5"
    IncSwappingCount="1"
    SwappingCountMax="3"
    DecOjyamaPanelDeleteBeforeWait="1"

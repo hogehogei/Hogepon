@@ -56,7 +56,6 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
 	int draw_y = calculateDrawPos_Y(gamelogic, panel, y);
     
     const s3d::String& back_id = m_PanelSubTexTable[panel.color].back_identifier;
-    const s3d::String& mark_id = m_PanelSubTexTable[panel.color].mark_identifier;
 
     // delete after wait のときは、
     // パネルが消えた直後で、スペース表示をしたいので表示させない
@@ -65,12 +64,12 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
         // ネクストパネルは少し暗くして描写
         if (y == pcont.FieldNextLine()) {
             m_PanelTexture.SubTexture(back_id).draw(draw_x, draw_y, s3d::Color(0x50, 0x50, 0x50));
-            m_PanelTexture.SubTexture(mark_id).draw(draw_x, draw_y, s3d::Color(0x50, 0x50, 0x50));
+            drawPanelMark(gamelogic, panel, draw_x, draw_y, s3d::Color(0x50, 0x50, 0x50));
         }
         // それ以外はそのまま
         else {
             m_PanelTexture.SubTexture(back_id).draw(draw_x, draw_y);
-            m_PanelTexture.SubTexture(mark_id).draw(draw_x, draw_y);
+            drawPanelMark(gamelogic, panel, draw_x, draw_y, s3d::Color(0xFF, 0xFF, 0xFF));
         }
     }
 
@@ -84,7 +83,7 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
         else if (panel.state == Panel::STATE_UNCOMPRESS_AFTER_WAIT) {
             if (panel.is_mark_be_panel) {
                 m_PanelTexture.SubTexture(back_id).draw(draw_x, draw_y);
-                m_PanelTexture.SubTexture(mark_id).draw(draw_x, draw_y);
+                drawPanelMark(gamelogic, panel, draw_x, draw_y, s3d::Color(0xFF, 0xFF, 0xFF));
             }
             else {
                 s3d::TextureRegion subtexture = getOjyamaSubTexture(gamelogic, x, y);
@@ -96,6 +95,23 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
             subtexture.draw(draw_x, draw_y);
         }
     }
+}
+
+void PanelDrawer2D::drawPanelMark(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y, const s3d::Color& diffuse)
+{
+    const GameFieldSetting& settings = gamelogic.GetFieldSetting();
+    const s3d::String& mark_id = m_PanelSubTexTable[panel.color].mark_identifier;
+
+    // 落下時にパネルのマークを弾ませるような表示をする
+    // 具体的には、マークのテクスチャだけ少しの間縮ませて表示する
+    // 縮ませる間(0 - 1とする) を 0 - Pi と変換し、 その sine カーブを利用した。
+    // （sine カーブの 0 - 90℃の範囲で、凹となっているような感じ）
+    double fall_after_wait_progress = panel.fall_after_wait / static_cast<double>(settings.FallAfterWaitMax());
+    double compress_curve = s3d::Sin(fall_after_wait_progress * s3d::Math::Pi);
+    double compress_ratio = compress_curve * 0.3;
+    int animated_pixel_y = draw_pixel_y + (m_DrawSetting.PanelUnit * compress_ratio);
+
+    m_PanelTexture.SubTexture(mark_id).scaled(1.0, 1.0 - compress_ratio).draw(draw_pixel_x, animated_pixel_y, diffuse);
 }
 
 s3d::TextureRegion PanelDrawer2D::getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y)
