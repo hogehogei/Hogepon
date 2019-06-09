@@ -35,6 +35,8 @@ private:
     void drawPanelMark(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y, const s3d::Color& diffuse);
     void drawPanelBeforeDelete(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y);
     void drawPanelSurprisedFace(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y);
+    void drawOjyamaFace(const GameLogic& gamelogic);
+    void drawUncompressPanel(const s3d::TextureRegion& ojyama_texture, int draw_pixel_x, int draw_pixel_y);
     s3d::TextureRegion getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y);
 
 	int calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x);

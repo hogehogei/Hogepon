@@ -85,6 +85,13 @@
       Width="40"
       Height="40"
     ></SubTexCoords>
+    <SubTexCoords
+      Identifier="UncompressFace"
+      X="0"
+      Y="200"
+      Width="40"
+      Height="40"
+    ></SubTexCoords>
   </SubTextures>
 </Ojyama_2D>
 

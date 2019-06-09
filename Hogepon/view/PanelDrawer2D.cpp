@@ -83,12 +83,17 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
         }
     }
 
+
+    drawOjyamaFace(gamelogic);
+
     if (panel.type == Panel::TYPE_OJYAMA) {
         if (panel.state == Panel::STATE_UNCOMPRESS_BEFORE_WAIT) {
-            s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0x00, 0x00, 0xFF));
+            s3d::TextureRegion ojyama_texture = getOjyamaSubTexture(gamelogic, x, y);
+            drawUncompressPanel(ojyama_texture, draw_x, draw_y);
         }
         else if (panel.state == Panel::STATE_UNCOMPRESS) {
-            s3d::Rect(draw_x, draw_y, 40, 40).draw(s3d::Color(0x00, 0x00, 0xFF));
+            s3d::TextureRegion ojyama_texture = getOjyamaSubTexture(gamelogic, x, y);
+            drawUncompressPanel(ojyama_texture, draw_x, draw_y);
         }
         else if (panel.state == Panel::STATE_UNCOMPRESS_AFTER_WAIT) {
             if (panel.is_mark_be_panel) {
@@ -118,7 +123,9 @@ void PanelDrawer2D::drawPanelMark(const GameLogic& gamelogic, const Panel& panel
     // （sine カーブの 0 - 90℃の範囲で、凹となっているような感じ）
     double fall_after_wait_progress = panel.fall_after_wait / static_cast<double>(settings.FallAfterWaitMax());
     double compress_curve = s3d::Sin(fall_after_wait_progress * s3d::Math::Pi);
+    // 縮ませる割合(0 - 1)
     double compress_ratio = compress_curve * 0.3;
+    // 縮んだ分だけ下にずらす
     int animated_pixel_y = draw_pixel_y + (m_DrawSetting.PanelSize * compress_ratio);
 
     m_PanelTexture.SubTexture(mark_id).scaled(1.0, 1.0 - compress_ratio).draw(draw_pixel_x, animated_pixel_y, diffuse);
@@ -149,6 +156,18 @@ void PanelDrawer2D::drawPanelSurprisedFace(const GameLogic& gamelogic, const Pan
 
     m_PanelTexture.SubTexture(back_id).draw(draw_pixel_x, draw_pixel_y);
     m_PanelTexture.SubTexture(face_id).draw(draw_pixel_x, draw_pixel_y);
+}
+
+void PanelDrawer2D::drawOjyamaFace(const GameLogic& gamelogic)
+{
+    const PanelContainer& pcont = gamelogic.GetPanelContainer();
+    //OjyamaPanelVec ojyama_vec = pcont.GetOjyamaPanelListOnField();
+}
+
+void PanelDrawer2D::drawUncompressPanel(const s3d::TextureRegion& ojyama_texture, int draw_pixel_x, int draw_pixel_y)
+{
+    ojyama_texture.draw(draw_pixel_x, draw_pixel_y);
+    m_OjyamaTexture.SubTexture(U"UncompressFace").draw(draw_pixel_x, draw_pixel_y);
 }
 
 s3d::TextureRegion PanelDrawer2D::getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y)
