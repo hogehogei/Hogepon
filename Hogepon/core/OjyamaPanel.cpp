@@ -238,13 +238,13 @@ OjyamaInfo::Part OjyamaInfo::GetPart(int x, int y) const
     }
 
     int w = ojyama->width;
-    int h = ojyama->height;
+    int h = ojyama->height - 1;
     if (y < m_BasePos.y || y >(m_BasePos.y + h) ||
         x < m_BasePos.x || x >(m_BasePos.x + w)) {
         return OjyamaInfo::OutRange;
     }
 
-    if (h == 1) {
+    if (h == 0) {
         if (x == m_BasePos.x ){
             return OjyamaInfo::OneLine_Left;
         }

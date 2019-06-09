@@ -31,8 +31,6 @@ void GameLogic::Update()
 	if (m_State.IsGameOver()) {
 		return;
 	}
-
-	s3d::Print << m_Cursor.cx << U" " << m_Cursor.cy;
     
     // 連鎖が終わったかどうか
     bool isEndChain = true;

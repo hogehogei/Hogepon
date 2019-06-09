@@ -1,7 +1,7 @@
 <LevelData>
   <GameFieldSettings
    ChallengeLevel="easy"
-   IncFastSeriagari="100"
+   IncFastSeriagari="200"
    IncAutoSeriagari="5"
    SeriagariCountMax="6000"
    GameOverTimeLimit="180"
