@@ -59,6 +59,10 @@ public:
     OjyamaInfo() = delete;
 
     Part GetPart(int x, int y) const;
+    int Width() const;
+    int Height() const;
+    Panel::State State() const;
+    const PanelPos& BasePos() const;
 
 private:
 

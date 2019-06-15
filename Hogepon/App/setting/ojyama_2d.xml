@@ -92,6 +92,13 @@
       Width="40"
       Height="40"
     ></SubTexCoords>
+    <SubTexCoords
+      Identifier="OjyamaFaceNormal"
+      X="0"
+      Y="160"
+      Width="40"
+      Height="40"
+    ></SubTexCoords>
   </SubTextures>
 </Ojyama_2D>
 

@@ -31,7 +31,10 @@ public:
 
 private:
 
-	void drawPanel(const GameLogic& gamelogic, int x, int y);
+	void drawPanels(const GameLogic& gamelogic, int x, int y);
+    void drawOjyamaBlockBack(const GameLogic& gamelogic, int x, int y);
+    void drawOjyamaPanelExpression(const GameLogic& gamelogic, int x, int y);
+
     void drawPanelMark(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y, const s3d::Color& diffuse);
     void drawPanelBeforeDelete(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y);
     void drawPanelSurprisedFace(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y);

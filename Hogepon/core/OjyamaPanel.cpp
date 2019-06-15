@@ -291,3 +291,39 @@ OjyamaInfo::Part OjyamaInfo::GetPart(int x, int y) const
         }
     }
 }
+
+int OjyamaInfo::Width() const
+{
+    auto ojyama = m_OjyamaInfo.lock();
+    if (!ojyama) {
+        assert(0 && "OjyamaPanel has already deleted. IT MUST BE BUG");
+    }
+
+    return ojyama->width;
+}
+
+int OjyamaInfo::Height() const
+{
+    auto ojyama = m_OjyamaInfo.lock();
+    if (!ojyama) {
+        assert(0 && "OjyamaPanel has already deleted. IT MUST BE BUG");
+    }
+
+    return ojyama->height;
+}
+
+Panel::State OjyamaInfo::State() const
+{
+    const Panel& panel = m_PanelContainer->GetPanel(m_BasePos.x, m_BasePos.y);
+    return panel.state;
+}
+
+const PanelPos& OjyamaInfo::BasePos() const
+{
+    auto ojyama = m_OjyamaInfo.lock();
+    if (!ojyama) {
+        assert(0 && "OjyamaPanel has already deleted. IT MUST BE BUG");
+    }
+
+    return m_BasePos;
+}

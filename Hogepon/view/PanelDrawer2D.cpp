@@ -43,12 +43,21 @@ void PanelDrawer2D::DrawPanels(const GameLogic& gamelogic)
 	const PanelContainer& pcont = gamelogic.GetPanelContainer();
 	for (int y = pcont.FieldNextLine(); y <= pcont.FieldTop(); ++y) {
 		for (int x = pcont.FieldLeft(); x <= pcont.FieldRight(); ++x) {
-			drawPanel(gamelogic, x, y);
+			drawPanels(gamelogic, x, y);
+            drawOjyamaBlockBack(gamelogic, x, y);
 		}
 	}
+
+    drawOjyamaFace(gamelogic);
+
+    for (int y = pcont.FieldNextLine(); y <= pcont.FieldTop(); ++y) {
+        for (int x = pcont.FieldLeft(); x <= pcont.FieldRight(); ++x) {
+            drawOjyamaPanelExpression(gamelogic, x, y);
+        }
+    }
 }
 
-void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
+void PanelDrawer2D::drawPanels(const GameLogic& gamelogic, int x, int y)
 {
 	const PanelContainer& pcont = gamelogic.GetPanelContainer();
 	const Panel& panel = pcont.GetPanel(x, y);
@@ -82,20 +91,26 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
             }
         }
     }
+}
 
+void PanelDrawer2D::drawOjyamaBlockBack(const GameLogic& gamelogic, int x, int y)
+{
+    const PanelContainer& pcont = gamelogic.GetPanelContainer();
+    const Panel& panel = pcont.GetPanel(x, y);
 
-    drawOjyamaFace(gamelogic);
+    int draw_x = calculateDrawPos_X(gamelogic, panel, x);
+    int draw_y = calculateDrawPos_Y(gamelogic, panel, y);
+
+    const s3d::String& back_id = m_PanelSubTexTable[panel.color].back_identifier;
 
     if (panel.type == Panel::TYPE_OJYAMA) {
-        if (panel.state == Panel::STATE_UNCOMPRESS_BEFORE_WAIT) {
-            s3d::TextureRegion ojyama_texture = getOjyamaSubTexture(gamelogic, x, y);
-            drawUncompressPanel(ojyama_texture, draw_x, draw_y);
+        if( panel.state != Panel::STATE_UNCOMPRESS_BEFORE_WAIT &&
+            panel.state != Panel::STATE_UNCOMPRESS &&
+            panel.state != Panel::STATE_UNCOMPRESS_AFTER_WAIT ){
+            s3d::TextureRegion subtexture = getOjyamaSubTexture(gamelogic, x, y);
+            subtexture.draw(draw_x, draw_y);
         }
-        else if (panel.state == Panel::STATE_UNCOMPRESS) {
-            s3d::TextureRegion ojyama_texture = getOjyamaSubTexture(gamelogic, x, y);
-            drawUncompressPanel(ojyama_texture, draw_x, draw_y);
-        }
-        else if (panel.state == Panel::STATE_UNCOMPRESS_AFTER_WAIT) {
+        if (panel.state == Panel::STATE_UNCOMPRESS_AFTER_WAIT) {
             if (panel.is_mark_be_panel) {
                 m_PanelTexture.SubTexture(back_id).draw(draw_x, draw_y);
                 drawPanelMark(gamelogic, panel, draw_x, draw_y, s3d::Color(0xFF, 0xFF, 0xFF));
@@ -105,9 +120,25 @@ void PanelDrawer2D::drawPanel(const GameLogic& gamelogic, int x, int y)
                 subtexture.draw(draw_x, draw_y);
             }
         }
-        else {
-            s3d::TextureRegion subtexture = getOjyamaSubTexture(gamelogic, x, y);
-            subtexture.draw(draw_x, draw_y);
+    }
+}
+
+void PanelDrawer2D::drawOjyamaPanelExpression(const GameLogic& gamelogic, int x, int y)
+{
+    const PanelContainer& pcont = gamelogic.GetPanelContainer();
+    const Panel& panel = pcont.GetPanel(x, y);
+
+    int draw_x = calculateDrawPos_X(gamelogic, panel, x);
+    int draw_y = calculateDrawPos_Y(gamelogic, panel, y);
+
+    if (panel.type == Panel::TYPE_OJYAMA) {
+        if (panel.state == Panel::STATE_UNCOMPRESS_BEFORE_WAIT) {
+            s3d::TextureRegion ojyama_texture = getOjyamaSubTexture(gamelogic, x, y);
+            drawUncompressPanel(ojyama_texture, draw_x, draw_y);
+        }
+        else if (panel.state == Panel::STATE_UNCOMPRESS) {
+            s3d::TextureRegion ojyama_texture = getOjyamaSubTexture(gamelogic, x, y);
+            drawUncompressPanel(ojyama_texture, draw_x, draw_y);
         }
     }
 }
@@ -136,14 +167,17 @@ void PanelDrawer2D::drawPanelBeforeDelete(const GameLogic& gamelogic, const Pane
     const s3d::String& back_id = m_PanelSubTexTable[panel.color].back_identifier;
     const s3d::String& mark_id = m_PanelSubTexTable[panel.color].mark_identifier;
 
+    // ƒpƒlƒ‹Á‹ŽŽž‚É“_–Å‚³‚¹‚Ä•\Ž¦‚³‚¹‚é
     int panel_size = m_DrawSetting.PanelSize;
     int blink_period = 8;
     int blink = (panel.delete_before_wait % blink_period) / (blink_period/2);
 
     if (blink == 0) {
+        // ”’”wŒi
         s3d::Rect(draw_pixel_x, draw_pixel_y, m_DrawSetting.PanelSize, m_DrawSetting.PanelSize).draw(s3d::Color(0xFF, 0xFF, 0xFF));
     }
     else {
+        // •’Ê‚Ìƒpƒlƒ‹‚Ì”wŒi
         m_PanelTexture.SubTexture(back_id).draw(draw_pixel_x, draw_pixel_y);
     }
     m_PanelTexture.SubTexture(mark_id).draw(draw_pixel_x, draw_pixel_y);
@@ -161,7 +195,38 @@ void PanelDrawer2D::drawPanelSurprisedFace(const GameLogic& gamelogic, const Pan
 void PanelDrawer2D::drawOjyamaFace(const GameLogic& gamelogic)
 {
     const PanelContainer& pcont = gamelogic.GetPanelContainer();
-    //OjyamaPanelVec ojyama_vec = pcont.GetOjyamaPanelListOnField();
+    PanelContainer::OjyamaInfoVec ojyama_list = pcont.GetOjyamaInfoListOnField();
+
+    for (auto itr = ojyama_list.begin(); itr != ojyama_list.end(); ++itr) {
+        Panel::State state = itr->State();
+        if( !(state == Panel::STATE_UNCOMPRESS || state == Panel::STATE_UNCOMPRESS_BEFORE_WAIT || state == Panel::STATE_UNCOMPRESS_AFTER_WAIT) ){
+            int width  = itr->Width();
+            int height = itr->Height();
+            PanelPos pos = itr->BasePos();
+
+            int draw_x = calculateDrawPos_X(gamelogic, pcont.GetPanel(pos.x, pos.y), pos.x);
+            draw_x += (width / 2.0) * m_DrawSetting.PanelSize - (m_DrawSetting.PanelSize / 2);
+            int draw_y = calculateDrawPos_Y(gamelogic, pcont.GetPanel(pos.x, pos.y), pos.y);
+            draw_y += -((height / 2.0) * m_DrawSetting.PanelSize) + (m_DrawSetting.PanelSize / 2);
+
+            m_OjyamaTexture.SubTexture(U"OjyamaFaceNormal").draw(draw_x, draw_y);
+        }
+        else {
+            int width = itr->Width();
+            int height = itr->Height();
+            PanelPos pos = itr->BasePos();
+            pos.y += 1;
+
+            if (height >= 1) {
+                int draw_x = calculateDrawPos_X(gamelogic, pcont.GetPanel(pos.x, pos.y), pos.x);
+                draw_x += (width / 2.0) * m_DrawSetting.PanelSize - (m_DrawSetting.PanelSize / 2);
+                int draw_y = calculateDrawPos_Y(gamelogic, pcont.GetPanel(pos.x, pos.y), pos.y);
+                draw_y += -((height / 2.0) * m_DrawSetting.PanelSize) + (m_DrawSetting.PanelSize / 2);
+
+                m_OjyamaTexture.SubTexture(U"OjyamaFaceNormal").draw(draw_x, draw_y);
+            }
+        }
+    }
 }
 
 void PanelDrawer2D::drawUncompressPanel(const s3d::TextureRegion& ojyama_texture, int draw_pixel_x, int draw_pixel_y)

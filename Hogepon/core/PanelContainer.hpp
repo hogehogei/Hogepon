@@ -12,6 +12,7 @@ class PanelContainer
 public:
 
     using OjyamaPanelVec = std::vector<OjyamaPanel>;
+    using OjyamaInfoVec = std::vector<OjyamaInfo>;
 
 public:
 
@@ -31,6 +32,8 @@ public:
     OjyamaPanel GetOjyamaPanel(int x, int y);
     OjyamaInfo GetOjyamaInfo(int x, int y) const;
     OjyamaPanelVec GetOjyamaPanelListOnField();
+    OjyamaInfoVec GetOjyamaInfoListOnField() const;
+
 
 	bool Is_InFieldCursor(int x, int y) const;
 	bool Is_InField(int x, int y) const;
