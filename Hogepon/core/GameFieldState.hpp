@@ -54,6 +54,9 @@ public:
 	void IncChainCount();
 	void EndChain();
 
+    void SetFallOjyama();
+    void SendEvents();
+
 private:
         
     int m_Point;
@@ -63,7 +66,9 @@ private:
     int m_SeriagariWaitTimer;
     int m_GameOverWaitTimer;
 
+    bool m_IsFallOjyama;
 	bool m_Is_InChain;
+
 
     uint32_t m_FieldState;
 };

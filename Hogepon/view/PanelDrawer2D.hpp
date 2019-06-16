@@ -4,6 +4,8 @@
 #include "core/GameLogic.hpp"
 #include "core/Panel.hpp"
 #include "util/SubTextures.hpp"
+#include "util/HashedString.hpp"
+#include "util/IEvent.hpp"
 
 class PanelDrawer2D
 {
@@ -28,6 +30,8 @@ public:
 
 	void SetDrawSetting(const PanelDrawer2D::DrawSetting& draw_setting);
 	void DrawPanels(const GameLogic& gamelogic);
+    
+    static bool EventHandler(PanelDrawer2D* self, const exlib::IEvent& event);
 
 private:
 

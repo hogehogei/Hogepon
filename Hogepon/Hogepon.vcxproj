@@ -208,7 +208,10 @@
     <ClCompile Include="core\Panel.cpp" />
     <ClCompile Include="core\PanelContainer.cpp" />
     <ClCompile Include="core\PanelCreator.cpp" />
+    <ClCompile Include="event\Event.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="util\EventManager.cpp" />
+    <ClCompile Include="util\HashedString.cpp" />
     <ClCompile Include="util\SubTextures.cpp" />
     <ClCompile Include="view\FieldDrawer.cpp" />
     <ClCompile Include="view\PanelDrawer2D.cpp" />
@@ -285,6 +288,13 @@
     <ClInclude Include="core\Panel.hpp" />
     <ClInclude Include="core\PanelContainer.hpp" />
     <ClInclude Include="core\PanelCreator.hpp" />
+    <ClInclude Include="event\Event.hpp" />
+    <ClInclude Include="event\EventListener.hpp" />
+    <ClInclude Include="util\EasingShake.h" />
+    <ClInclude Include="util\EventManager.hpp" />
+    <ClInclude Include="util\HashedString.hpp" />
+    <ClInclude Include="util\IEvent.hpp" />
+    <ClInclude Include="util\IEventHandler.hpp" />
     <ClInclude Include="util\SubTextures.hpp" />
     <ClInclude Include="view\FieldDrawer.hpp" />
     <ClInclude Include="view\PanelDrawer2D.hpp" />

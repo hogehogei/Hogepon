@@ -168,7 +168,6 @@ void PanelDrawer2D::drawPanelBeforeDelete(const GameLogic& gamelogic, const Pane
     const s3d::String& mark_id = m_PanelSubTexTable[panel.color].mark_identifier;
 
     // パネル消去時に点滅させて表示させる
-    int panel_size = m_DrawSetting.PanelSize;
     int blink_period = 8;
     int blink = (panel.delete_before_wait % blink_period) / (blink_period/2);
 
@@ -314,4 +313,10 @@ int PanelDrawer2D::calculateDrawPos_Y(const GameLogic& gamelogic, const Panel& p
 	int panel_pos_y = y * m_DrawSetting.PanelSize;
 
 	return m_DrawSetting.BaseY - panel_pos_y - falling_dy - seriagari_dy;
+}
+
+
+bool PanelDrawer2D::EventHandler(PanelDrawer2D* self, const exlib::IEvent& event)
+{
+    return true;
 }

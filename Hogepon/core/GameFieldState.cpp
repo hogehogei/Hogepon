@@ -1,6 +1,8 @@
 
 
 #include "core/GameFieldState.hpp"
+#include "util/EventManager.hpp"
+#include "event/Event.hpp"
 
 GameState::GameState()
     : 
@@ -9,6 +11,7 @@ GameState::GameState()
 	m_SeriagariCount( 0 ),
 	m_SeriagariWaitTimer( 0 ),
     m_GameOverWaitTimer( 0 ),
+    m_IsFallOjyama( false ),
 	m_Is_InChain( false ),
     m_FieldState( 0 )
 {}
@@ -142,4 +145,18 @@ void GameState::EndChain()
 {
 	m_Is_InChain = false;
 	// 連鎖終了イベント送出
+}
+
+void GameState::SetFallOjyama()
+{
+    m_IsFallOjyama = true;
+}
+
+void GameState::SendEvents()
+{
+    if (m_IsFallOjyama) {
+        exlib::IEventPtr e = std::make_shared<OjyamaFallEvent>();
+        exlib::EventManager::Instance().QueueEvent(e);
+    }
+    m_IsFallOjyama = false;
 }

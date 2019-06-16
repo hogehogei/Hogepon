@@ -82,6 +82,8 @@ void GameLogic::Update()
     if( isEndChain ){
 		m_State.EndChain();
     }
+    // イベント送出
+    m_State.SendEvents();
 }
 
 void GameLogic::fallOjyamaLine()
@@ -474,8 +476,6 @@ void GameLogic::setUncompressOjyamaTimer()
     int uncompress_wait_per_panel = m_FieldSetting.WaitTimePanelDel();
     int uncompress_time_max = uncompress_wait_per_panel * uncompress_panel_num;
     int uncompress_cnt = 0;
-
-    bool is_chain = false;
 
     for (int y = m_PanelContainer.FieldBottom(); y <= m_PanelContainer.FieldTop(); ++y) {
         for (int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x) {
@@ -895,6 +895,7 @@ void GameLogic::update_OjyamaFalling(int x, int y)
         else {
             setpanel.Reset();
             setpanel.state = Panel::STATE_DEFAULT;
+            m_State.SetFallOjyama();
         }
     }
 
