@@ -11,7 +11,7 @@
    DecPanelDeleteWait="1"
    DecPanelDeleteAfterWait="1"
    IncFallBeforeWait="1"
-   FallBeforeWaitMax="6"
+   FallBeforeWaitMax="10"
    IncFallCount="1"
    FallCountMax="1"
    IncFallAfterWait="1"

@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SIV3D_0_3_1)\include;$(SIV3D_0_3_1)\include\ThirdParty;$(IncludePath)</IncludePath>
+    <IncludePath>$(SIV3D_0_3_1)\include\ThirdParty\TaskSystem;$(SIV3D_0_3_1)\include;$(SIV3D_0_3_1)\include\ThirdParty;$(IncludePath)</IncludePath>
     <LibraryPath>$(SIV3D_0_3_1)\lib\Windows(x86);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Intermediate\$(ProjectName)\Debug-x86\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\$(ProjectName)\Debug-x86\Intermediate\</IntDir>
@@ -80,8 +80,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SIV3D_0_3_1)\include;$(SIV3D_0_3_1)\include\ThirdParty;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SIV3D_0_3_1)\lib\Windows(x64);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SIV3D_0_3_1)\include\ThirdParty\TaskSystem;$(SIV3D_0_3_1)\include;$(SIV3D_0_3_1)\include\ThirdParty;$(IncludePath)</IncludePath>
+    <LibraryPath>
+    </LibraryPath>
     <OutDir>$(SolutionDir)Intermediate\$(ProjectName)\Debug-x64\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\$(ProjectName)\Debug-x64\Intermediate\</IntDir>
     <TargetName>$(ProjectName)(debug_64-bit)</TargetName>
@@ -89,7 +90,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SIV3D_0_3_1)\include;$(SIV3D_0_3_1)\include\ThirdParty;$(IncludePath)</IncludePath>
+    <IncludePath>$(SIV3D_0_3_1)\include\ThirdParty\TaskSystem;$(SIV3D_0_3_1)\include;$(SIV3D_0_3_1)\include\ThirdParty;$(IncludePath)</IncludePath>
     <LibraryPath>$(SIV3D_0_3_1)\lib\Windows(x86);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Intermediate\$(ProjectName)\Release-x86\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\$(ProjectName)\Release-x86\Intermediate\</IntDir>
@@ -98,8 +99,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SIV3D_0_3_1)\include;$(SIV3D_0_3_1)\include\ThirdParty;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SIV3D_0_3_1)\lib\Windows(x64);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SIV3D_0_3_1)\include\ThirdParty\TaskSystem;$(SIV3D_0_3_1)\include;$(SIV3D_0_3_1)\include\ThirdParty;$(IncludePath)</IncludePath>
+    <LibraryPath>
+    </LibraryPath>
     <OutDir>$(SolutionDir)Intermediate\$(ProjectName)\Release-x64\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\$(ProjectName)\Release-x64\Intermediate\</IntDir>
     <TargetName>$(ProjectName)(64-bit)</TargetName>
@@ -208,11 +210,13 @@
     <ClCompile Include="core\Panel.cpp" />
     <ClCompile Include="core\PanelContainer.cpp" />
     <ClCompile Include="core\PanelCreator.cpp" />
+    <ClCompile Include="core\Score.cpp" />
     <ClCompile Include="event\Event.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="util\EventManager.cpp" />
     <ClCompile Include="util\HashedString.cpp" />
     <ClCompile Include="util\SubTextures.cpp" />
+    <ClCompile Include="view\effect\PanelDeleteEffect.cpp" />
     <ClCompile Include="view\FieldDrawer.cpp" />
     <ClCompile Include="view\PanelDrawer2D.cpp" />
   </ItemGroup>
@@ -280,6 +284,7 @@
     <Xml Include="App\example\test.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="core\Score.hpp" />
     <ClInclude Include="core\GameFieldSetting.hpp" />
     <ClInclude Include="core\GameFieldState.hpp" />
     <ClInclude Include="core\GameLogic.hpp" />
@@ -296,6 +301,7 @@
     <ClInclude Include="util\IEvent.hpp" />
     <ClInclude Include="util\IEventHandler.hpp" />
     <ClInclude Include="util\SubTextures.hpp" />
+    <ClInclude Include="view\effect\PanelDeleteEffect.hpp" />
     <ClInclude Include="view\FieldDrawer.hpp" />
     <ClInclude Include="view\PanelDrawer2D.hpp" />
   </ItemGroup>

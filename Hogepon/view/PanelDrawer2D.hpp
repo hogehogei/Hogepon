@@ -6,6 +6,8 @@
 #include "util/SubTextures.hpp"
 #include "util/HashedString.hpp"
 #include "util/IEvent.hpp"
+#include "event/Event.hpp"
+#include "view/effect/PanelDeleteEffect.hpp"
 
 class PanelDrawer2D
 {
@@ -30,10 +32,13 @@ public:
 
 	void SetDrawSetting(const PanelDrawer2D::DrawSetting& draw_setting);
 	void DrawPanels(const GameLogic& gamelogic);
+    void DrawEffects(const GameLogic& gamelogic);
     
     static bool EventHandler(PanelDrawer2D* self, const exlib::IEvent& event);
 
 private:
+
+    using PanelDeleteEffectPtr = std::shared_ptr<PanelDeleteEffect>;
 
 	void drawPanels(const GameLogic& gamelogic, int x, int y);
     void drawOjyamaBlockBack(const GameLogic& gamelogic, int x, int y);
@@ -48,8 +53,11 @@ private:
 
 	int calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x);
 	int calculateDrawPos_Y(const GameLogic& gamelogic, const Panel& panel, int y);
+    void createPanelDeleteEffectTask(const PanelDeletedEvent& event);
+    void eraseEffectsLifeTimeExceeded();
 
 	PanelDrawer2D::DrawSetting m_DrawSetting;
     SubTextures m_PanelTexture;
     SubTextures m_OjyamaTexture;
+    std::list<PanelDeleteEffectPtr> m_Effects;
 };

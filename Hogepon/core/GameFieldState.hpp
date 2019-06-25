@@ -3,6 +3,8 @@
 #define   PANEPON_GAME_FIELD_STATE_HPP
 
 #include <stdint.h>
+#include "core/Panel.hpp"
+#include "GameFieldSetting.hpp"
 
 class GameState {
 public:
@@ -22,7 +24,7 @@ public:
     GameState();
     ~GameState() noexcept = default;
 
-    int Point() const { return m_Point; }
+    int Score() const { return m_Score; }
     int ChainCount() const { return m_ChainCount; }
 
 	// せり上がりカウンタ操作
@@ -50,25 +52,22 @@ public:
 	bool IsDeletePanel() const;
 	bool IsUncompressOjyama() const;
 
-	void Doujikeshi(int doujikeshi_count);
-	void IncChainCount();
+    void PanelDeleted(const Panel& panel, int xpos, int ypos);
+	void Doujikeshi( const GameFieldSetting& setting, int doujikeshi_count);
+	void IncChainCount( const GameFieldSetting& setting );
 	void EndChain();
-
-    void SetFallOjyama();
-    void SendEvents();
+    void FallOjyama();
 
 private:
         
-    int m_Point;
+    int m_Score;
     int m_ChainCount;
 	int m_SeriagariCount;
 
     int m_SeriagariWaitTimer;
     int m_GameOverWaitTimer;
 
-    bool m_IsFallOjyama;
 	bool m_Is_InChain;
-
 
     uint32_t m_FieldState;
 };

@@ -6,12 +6,11 @@
 
 GameState::GameState()
     : 
-	m_Point( 0 ),
+	m_Score( 0 ),
     m_ChainCount( 0 ),
 	m_SeriagariCount( 0 ),
 	m_SeriagariWaitTimer( 0 ),
     m_GameOverWaitTimer( 0 ),
-    m_IsFallOjyama( false ),
 	m_Is_InChain( false ),
     m_FieldState( 0 )
 {}
@@ -125,12 +124,25 @@ bool GameState::IsUncompressOjyama() const
 	return false;
 }
 
-void GameState::Doujikeshi(int doujikeshi_count)
+void GameState::PanelDeleted(const Panel& panel, int xpos, int ypos)
 {
-	// 同時消しイベント送出
+    exlib::IEventPtr e = std::make_shared<PanelDeletedEvent>(xpos, ypos);
+    exlib::EventManager::Instance().QueueEvent(e);
+
+    // 1パネル消える毎に10点
+    m_Score += 10;
 }
 
-void GameState::IncChainCount()
+void GameState::Doujikeshi(const GameFieldSetting& setting, int doujikeshi_count)
+{
+	// 同時消しイベント送出
+    exlib::IEventPtr e = std::make_shared<DoujikeshiEvent>(doujikeshi_count);
+    exlib::EventManager::Instance().QueueEvent(e);
+
+    m_Score += setting.DoujikeshiScore(doujikeshi_count);
+}
+
+void GameState::IncChainCount(const GameFieldSetting& setting)
 {
 	if (!m_Is_InChain) {
 		m_Is_InChain = true;
@@ -139,6 +151,8 @@ void GameState::IncChainCount()
 	else {
 		++m_ChainCount;
 	}
+
+    m_Score += setting.ChainScore(m_ChainCount);
 }
 
 void GameState::EndChain()
@@ -147,16 +161,8 @@ void GameState::EndChain()
 	// 連鎖終了イベント送出
 }
 
-void GameState::SetFallOjyama()
+void GameState::FallOjyama()
 {
-    m_IsFallOjyama = true;
-}
-
-void GameState::SendEvents()
-{
-    if (m_IsFallOjyama) {
-        exlib::IEventPtr e = std::make_shared<OjyamaFallEvent>();
-        exlib::EventManager::Instance().QueueEvent(e);
-    }
-    m_IsFallOjyama = false;
+    exlib::IEventPtr e = std::make_shared<OjyamaFallEvent>();
+    exlib::EventManager::Instance().QueueEvent(e);
 }

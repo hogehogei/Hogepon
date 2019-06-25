@@ -27,7 +27,9 @@ GameFieldSetting::GameFieldSetting(const s3d::String& filepath)
     m_DecOjyamaPanelDeleteAfterWait(0),
     m_UncompressBeforeWait(0),
 	m_FieldWidth(0),
-	m_FieldHeight(0)
+	m_FieldHeight(0),
+    m_DoujikeshiScore(U"setting/score.xml"),
+    m_ChainScore(U"setting/score.xml")
 
 {
 	s3d::XMLReader xml(filepath);
@@ -86,4 +88,12 @@ void GameFieldSetting::parseFieldInfo(const s3d::XMLElement& elem)
 	m_FieldHeight = s3d::Parse<int>(elem.attribute(U"FieldHeight").value_or(U"0"));
 }
 
+int GameFieldSetting::DoujikeshiScore(int doujikeshi_count) const
+{
+    return m_DoujikeshiScore.Score(doujikeshi_count);
+}
 
+int GameFieldSetting::ChainScore(int chain_count) const
+{
+    return m_ChainScore.Score(chain_count);
+}

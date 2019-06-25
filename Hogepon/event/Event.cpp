@@ -8,6 +8,8 @@ bool RegisterAllEvent()
 
     // “o˜^‚µ‚½‚¢ƒCƒxƒ“ƒg‚ð—…—ñ‚·‚é
     manager.RegisterEvent(OjyamaFallEvent::sk_EventType);
+    manager.RegisterEvent(DoujikeshiEvent::sk_EventType);
+    manager.RegisterEvent(PanelDeletedEvent::sk_EventType);
 
     return true;
 }

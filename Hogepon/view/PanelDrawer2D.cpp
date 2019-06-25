@@ -1,5 +1,6 @@
 
 #include "view/PanelDrawer2D.hpp"
+#include "util/EventManager.hpp"
 
 struct PanelSubTexTableEnt
 {
@@ -28,6 +29,9 @@ PanelDrawer2D::PanelDrawer2D()
 {
     m_PanelTexture.ReadSetting(U"setting/drawpanel_2d.xml");
     m_OjyamaTexture.ReadSetting(U"setting/ojyama_2d.xml");
+
+    exlib::IEventHandlerPtr event_handler = std::make_shared<exlib::EventHandlerBase<PanelDrawer2D>>("PanelDrawer2DEventHandler", this);
+    exlib::EventManager::Instance().AddHandler(PanelDeletedEvent::sk_EventType, event_handler);
 }
 
 PanelDrawer2D::~PanelDrawer2D()
@@ -55,6 +59,25 @@ void PanelDrawer2D::DrawPanels(const GameLogic& gamelogic)
             drawOjyamaPanelExpression(gamelogic, x, y);
         }
     }
+}
+
+void PanelDrawer2D::DrawEffects(const GameLogic& gamelogic)
+{
+    const PanelContainer& pcont = gamelogic.GetPanelContainer();
+    for (PanelDeleteEffectPtr& effect : m_Effects) {
+        effect->Update();
+
+        int panel_pos_x = effect->PosX();
+        int panel_pos_y = effect->PosY();
+        const Panel& panel = pcont.GetPanel(panel_pos_x, panel_pos_y);
+        int draw_x = calculateDrawPos_X(gamelogic, panel, panel_pos_x) + (m_DrawSetting.PanelSize / 2);
+        int draw_y = calculateDrawPos_Y(gamelogic, panel, panel_pos_y) + (m_DrawSetting.PanelSize / 2);
+
+        effect->Draw(draw_x, draw_y);
+    }
+
+    // 生存期間が過ぎたエフェクトを削除
+    eraseEffectsLifeTimeExceeded();
 }
 
 void PanelDrawer2D::drawPanels(const GameLogic& gamelogic, int x, int y)
@@ -315,8 +338,26 @@ int PanelDrawer2D::calculateDrawPos_Y(const GameLogic& gamelogic, const Panel& p
 	return m_DrawSetting.BaseY - panel_pos_y - falling_dy - seriagari_dy;
 }
 
+void PanelDrawer2D::createPanelDeleteEffectTask(const PanelDeletedEvent& event)
+{
+    double theta = 45.0;
+    for (int i = 0; i < 4; ++i) {
+        m_Effects.push_back(std::make_shared<PanelDeleteEffect>(event.xPos, event.yPos, s3d::ToRadians(theta), 3.0, 300, 15));
+        theta += 90.0;
+    }
+}
+
+void PanelDrawer2D::eraseEffectsLifeTimeExceeded()
+{
+    m_Effects.remove_if([](const PanelDeleteEffectPtr& e) { return e->IsFinished(); });
+}
 
 bool PanelDrawer2D::EventHandler(PanelDrawer2D* self, const exlib::IEvent& event)
 {
+    if (event.EventType() == PanelDeletedEvent::sk_EventType) {
+        const PanelDeletedEvent& e = dynamic_cast<const PanelDeletedEvent&>(event);
+        self->createPanelDeleteEffectTask(e);
+    }
+
     return true;
 }

@@ -1,8 +1,8 @@
 
-#ifndef   PANEPON_GAME_FIELD_SETTING_HPP
-#define   PANEPON_GAME_FIELD_SETTING_HPP
+#pragma once
 
 #include <Siv3D.hpp>
+#include "core/Score.hpp"
 
 class GameFieldSetting
 {
@@ -47,6 +47,10 @@ public:
     int DecOjyamaPanelDeleteWait() const { return m_DecOjyamaPanelDeleteWait; }
     int DecOjyamaPanelDeleteAfterWait() const { return m_DecOjyamaPanelDeleteAfterWait; }
     int UncompressBeforeWait() const { return m_UncompressBeforeWait; }
+
+    // “¾“_ŠÖ˜A
+    int DoujikeshiScore(int doujikeshi_count) const;
+    int ChainScore(int chain_count) const;
     
 private:
     
@@ -84,7 +88,9 @@ private:
 
 	int m_FieldWidth;
 	int m_FieldHeight;
+
+    ::DoujikeshiScore m_DoujikeshiScore;
+    ::ChainScore      m_ChainScore;
 };
 
-#endif   //   PANEPON_GAME_FIELD_SETTING_HPP
 

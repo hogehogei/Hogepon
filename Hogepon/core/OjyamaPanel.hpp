@@ -12,7 +12,7 @@ public:
     OjyamaPanel() = delete;
 
     void SetOjyamaPanel(const Panel& setpanel);
-    bool IsExistUnderOjyama(Panel::State state, Panel* under_panel);
+    bool IsExistOnlyUnderOjyama(Panel::State state, Panel* under_panel);
     bool CanFallOjyamaPanel() const;
     void Fall();
     void UncompressBottomLine();

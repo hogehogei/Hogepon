@@ -5,6 +5,7 @@
 #include "util/EasingShake.h"
 #include "core/GameLogic.hpp"
 #include "view/PanelDrawer2D.hpp"
+#include "event/Event.hpp"
 
 class FieldDrawer
 {
@@ -14,7 +15,6 @@ public:
 	~FieldDrawer() noexcept;
 
 	void Draw(const GameLogic& gamelogic);
-    void StartShakeField();
 
     static bool EventHandler(FieldDrawer* self, const exlib::IEvent& event);
 
@@ -26,10 +26,11 @@ private:
 
     void readDrawSetting(const s3d::String& filepath);
 	void drawCursor(const GameLogic& gamelogic);
+    void startShakeField();
 
 	PanelDrawer2D m_PanelDrawer2D;
     SubTextures   m_CursorTexture;
-    s3d::Texture  m_FrameTexture;
+    const Font    m_ScoreFont;
 
     int m_PanelSize;
     int m_LowerLeft_X;

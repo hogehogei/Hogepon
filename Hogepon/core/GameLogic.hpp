@@ -70,7 +70,7 @@ private:
 	void update_PanelFalling(int x, int y, Panel& panel);
 	void update_PanelFallAfterWait(int x, int y, Panel& panel);
 	void update_PanelDeleteBeforeWait(Panel& panel);
-	void update_PanelDelete(Panel& panel);
+	void update_PanelDelete(int x, int y, Panel& panel);
 	void update_PanelDeleteAfterWait(int x, int y, Panel& panel);
 
     void update_OjyamaDefault(int x, int y);

@@ -60,7 +60,7 @@ void OjyamaPanel::SetOjyamaPanel(const Panel& setpanel)
     }
 }
 
-bool OjyamaPanel::IsExistUnderOjyama(Panel::State state, Panel* under_panel)
+bool OjyamaPanel::IsExistOnlyUnderOjyama(Panel::State state, Panel* under_panel)
 {
     auto ojyama = m_OjyamaInfo.lock();
     if (!ojyama) {
@@ -79,10 +79,16 @@ bool OjyamaPanel::IsExistUnderOjyama(Panel::State state, Panel* under_panel)
          ++x) {
         const Panel& p= m_PanelContainer->GetUnderPanel(x, m_BasePos.y);
 
-        if (p.state == state) {
+        if (p.type == Panel::TYPE_SPACE) {
+            // スペースパネルなら何もしない
+            ;
+        }
+        else if (p.state == state) {
             *under_panel = p;
             is_found = true;
-            break;
+        }
+        else {
+            return false;
         }
     }
 
@@ -102,9 +108,7 @@ bool OjyamaPanel::CanFallOjyamaPanel() const
 
     for (int x = left; x < right; ++x) {
         const Panel& under_panel = m_PanelContainer->GetUnderPanel(x, m_BasePos.y);
-        bool can_fall_cond = under_panel.type == Panel::TYPE_SPACE &&
-            under_panel.state != Panel::STATE_SWAPPING &&
-            under_panel.state != Panel::STATE_DELETE_AFTER_WAIT;
+        bool can_fall_cond = (under_panel.type == Panel::TYPE_SPACE) && (under_panel.state != Panel::STATE_SWAPPING || under_panel.state != Panel::STATE_DELETE_AFTER_WAIT);
 
         if (!can_fall_cond) {
             result = false;

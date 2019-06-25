@@ -4,23 +4,22 @@
 #include "view/PanelDrawer2D.hpp"
 #include "util/EventManager.hpp"
 #include "util/IEventHandler.hpp"
-#include "event/Event.hpp"
 
 FieldDrawer::FieldDrawer()
-	: m_PanelDrawer2D(),
-      m_CursorTexture(),
-      m_FrameTexture(),
-      m_PanelSize(0),
-      m_LowerLeft_X(0),
-      m_LowerLeft_Y(0),
-      m_EasingShake(),
-      m_ShakeAmptitude_Y(0)
+    : 
+    m_PanelDrawer2D(),
+    m_CursorTexture(),
+    m_ScoreFont(40, FileSystem::SpecialFolderPath(SpecialFolder::SystemFonts) + U"x14y20pxScoreDozer.ttf"),
+    m_PanelSize(0),
+    m_LowerLeft_X(0),
+    m_LowerLeft_Y(0),
+    m_EasingShake(),
+    m_ShakeAmptitude_Y(0)
 {
     readDrawSetting(U"setting/fielddraw_1P.xml");
 
 	m_PanelDrawer2D.SetDrawSetting(PanelDrawer2D::DrawSetting(m_LowerLeft_X, m_LowerLeft_Y, m_PanelSize));
     m_CursorTexture.ReadSetting(U"setting/cursor.xml");
-    m_FrameTexture = s3d::Texture(U"image/frame.png");
 
     m_EasingShake = EasingShake(15.0, 10.0, 500);
 
@@ -38,11 +37,6 @@ void FieldDrawer::readDrawSetting(const s3d::String& filepath)
     m_PanelSize   = s3d::Parse<int>(xml.attribute(U"PanelSize").value_or(U"0"));
     m_LowerLeft_X = s3d::Parse<int>(xml.attribute(U"LowerLeft_X").value_or(U"0"));
     m_LowerLeft_Y = s3d::Parse<int>(xml.attribute(U"LowerLeft_Y").value_or(U"0"));
-}
-
-void FieldDrawer::StartShakeField()
-{
-    m_EasingShake.Start();
 }
 
 void FieldDrawer::Draw(const GameLogic& gamelogic)
@@ -63,9 +57,13 @@ void FieldDrawer::Draw(const GameLogic& gamelogic)
     Rect(lowerleft_x -2, (lowerleft_y - frame_height )-2, frame_width+4, frame_height+4).drawFrame(2, Color(0x00, 0xD5, 0xD5));
     m_PanelDrawer2D.SetDrawSetting(PanelDrawer2D::DrawSetting(lowerleft_x, lowerleft_y, m_PanelSize));
     m_PanelDrawer2D.DrawPanels(gamelogic);
+    m_PanelDrawer2D.DrawEffects(gamelogic);
     Rect(lowerleft_x -3, lowerleft_y, frame_width+6, m_PanelSize).draw(Color(0x00, 0xD5, 0xD5));
 
     drawCursor(gamelogic);
+
+    m_ScoreFont(U"Score").draw(400, 100, s3d::Palette::White);
+    m_ScoreFont(gamelogic.GetGameState().Score()).draw(400, 150, s3d::Palette::White);
 }
 
 
@@ -86,6 +84,11 @@ void FieldDrawer::drawCursor(const GameLogic& gamelogic)
     m_CursorTexture.SubTexture(U"Cursor").draw(draw_x, draw_y);
 }
 
+void FieldDrawer::startShakeField()
+{
+    m_EasingShake.Start();
+}
+
 int FieldDrawer::getPosLowerLeftX() const
 {
     return m_LowerLeft_X;
@@ -104,7 +107,7 @@ void FieldDrawer::updateShakeAmptitude()
 bool FieldDrawer::EventHandler(FieldDrawer* self, const exlib::IEvent& event)
 {
     if (event.EventType() == OjyamaFallEvent::sk_EventType) {
-        self->StartShakeField();
+        self->startShakeField();
     }
 
     return true;
