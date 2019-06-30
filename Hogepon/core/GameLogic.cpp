@@ -4,6 +4,9 @@
 #include "core/GameLogic.hpp"
 #include "core/OjyamaPanel.hpp"
 
+#include "util/EventManager.hpp"
+#include "event/Event.hpp"
+
 GameLogic::GameLogic( PlayerID id,
                       GameMode mode,
 					  const s3d::String& setting_filepath)
@@ -386,6 +389,8 @@ void GameLogic::changeState_PanelsDeleting()
     int delete_panel_cnt = 0;
 
 	bool is_chain = false;
+    bool panel_pos_found = false;
+    PanelPos top_panel_pos = { 0, 0 };
 
 	for (int y = m_PanelContainer.FieldTop(); y >= m_PanelContainer.FieldBottom(); --y) {
 		for (int x = m_PanelContainer.FieldLeft(); x <= m_PanelContainer.FieldRight(); ++x) {
@@ -402,16 +407,26 @@ void GameLogic::changeState_PanelsDeleting()
 				if (panel.is_chain_seed) {
 					is_chain = true;
 				}
+                if (!panel_pos_found) {
+                    top_panel_pos.x = x;
+                    top_panel_pos.y = y;
+                    panel_pos_found = true;
+                }
 			}
 		}
 	}
 
-	if (delete_panel_num >= 3) {
+	if (delete_panel_num >= 4) {
 		m_State.Doujikeshi(m_FieldSetting, delete_panel_num);
 	}
 	if (is_chain) {
 		m_State.IncChainCount(m_FieldSetting);
 	}
+
+    if (delete_panel_num >= 4 || is_chain) {
+        exlib::IEventPtr e = std::make_shared<OjyamaAttackEvent>(delete_panel_num, m_State.ChainCount(), top_panel_pos);
+        exlib::EventManager::Instance().QueueEvent(e);
+    }
 }
 
 void GameLogic::uncompressOjyama()

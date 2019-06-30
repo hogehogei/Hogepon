@@ -212,7 +212,10 @@
     <ClCompile Include="core\PanelCreator.cpp" />
     <ClCompile Include="core\Score.cpp" />
     <ClCompile Include="event\Event.cpp" />
+    <ClCompile Include="initialize\Initialize.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="scene\GameScene.cpp" />
+    <ClCompile Include="scene\Root.cpp" />
     <ClCompile Include="util\EventManager.cpp" />
     <ClCompile Include="util\HashedString.cpp" />
     <ClCompile Include="util\SubTextures.cpp" />
@@ -295,7 +298,11 @@
     <ClInclude Include="core\PanelCreator.hpp" />
     <ClInclude Include="event\Event.hpp" />
     <ClInclude Include="event\EventListener.hpp" />
-    <ClInclude Include="util\EasingShake.h" />
+    <ClInclude Include="initialize\Initialize.hpp" />
+    <ClInclude Include="scene\Root.hpp" />
+    <ClInclude Include="scene\GameScene.hpp" />
+    <ClInclude Include="view\effect\easing\RainbowCurve.hpp" />
+    <ClInclude Include="view\effect\easing\Shake.h" />
     <ClInclude Include="util\EventManager.hpp" />
     <ClInclude Include="util\HashedString.hpp" />
     <ClInclude Include="util\IEvent.hpp" />

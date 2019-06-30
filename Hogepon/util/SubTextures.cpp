@@ -25,7 +25,7 @@ bool SubTextures::ReadSetting(const s3d::String& filepath)
     return m_IsSettingCompleted;
 }
 
-s3d::TextureRegion SubTextures::SubTexture(const s3d::String& identifier_name)
+s3d::TextureRegion SubTextures::SubTexture(const s3d::String& identifier_name) const
 {
     s3d::TextureRegion region;
 

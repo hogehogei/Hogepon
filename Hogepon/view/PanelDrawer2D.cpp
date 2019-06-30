@@ -42,7 +42,17 @@ void PanelDrawer2D::SetDrawSetting(const PanelDrawer2D::DrawSetting& draw_settin
 	m_DrawSetting = draw_setting;
 }
 
-void PanelDrawer2D::DrawPanels(const GameLogic& gamelogic)
+void PanelDrawer2D::Update()
+{
+    // エフェクトの更新
+    for (const PanelDeleteEffectPtr& effect : m_Effects) {
+        effect->Update();
+    }
+    // 生存期間が過ぎたエフェクトを削除
+    eraseEffectsLifeTimeExceeded();
+}
+
+void PanelDrawer2D::DrawPanels(const GameLogic& gamelogic) const
 {
 	const PanelContainer& pcont = gamelogic.GetPanelContainer();
 	for (int y = pcont.FieldNextLine(); y <= pcont.FieldTop(); ++y) {
@@ -61,12 +71,10 @@ void PanelDrawer2D::DrawPanels(const GameLogic& gamelogic)
     }
 }
 
-void PanelDrawer2D::DrawEffects(const GameLogic& gamelogic)
+void PanelDrawer2D::DrawEffects(const GameLogic& gamelogic) const
 {
     const PanelContainer& pcont = gamelogic.GetPanelContainer();
-    for (PanelDeleteEffectPtr& effect : m_Effects) {
-        effect->Update();
-
+    for (const PanelDeleteEffectPtr& effect : m_Effects) {
         int panel_pos_x = effect->PosX();
         int panel_pos_y = effect->PosY();
         const Panel& panel = pcont.GetPanel(panel_pos_x, panel_pos_y);
@@ -75,12 +83,9 @@ void PanelDrawer2D::DrawEffects(const GameLogic& gamelogic)
 
         effect->Draw(draw_x, draw_y);
     }
-
-    // 生存期間が過ぎたエフェクトを削除
-    eraseEffectsLifeTimeExceeded();
 }
 
-void PanelDrawer2D::drawPanels(const GameLogic& gamelogic, int x, int y)
+void PanelDrawer2D::drawPanels(const GameLogic& gamelogic, int x, int y) const
 {
 	const PanelContainer& pcont = gamelogic.GetPanelContainer();
 	const Panel& panel = pcont.GetPanel(x, y);
@@ -116,7 +121,7 @@ void PanelDrawer2D::drawPanels(const GameLogic& gamelogic, int x, int y)
     }
 }
 
-void PanelDrawer2D::drawOjyamaBlockBack(const GameLogic& gamelogic, int x, int y)
+void PanelDrawer2D::drawOjyamaBlockBack(const GameLogic& gamelogic, int x, int y) const
 {
     const PanelContainer& pcont = gamelogic.GetPanelContainer();
     const Panel& panel = pcont.GetPanel(x, y);
@@ -146,7 +151,7 @@ void PanelDrawer2D::drawOjyamaBlockBack(const GameLogic& gamelogic, int x, int y
     }
 }
 
-void PanelDrawer2D::drawOjyamaPanelExpression(const GameLogic& gamelogic, int x, int y)
+void PanelDrawer2D::drawOjyamaPanelExpression(const GameLogic& gamelogic, int x, int y) const
 {
     const PanelContainer& pcont = gamelogic.GetPanelContainer();
     const Panel& panel = pcont.GetPanel(x, y);
@@ -166,7 +171,7 @@ void PanelDrawer2D::drawOjyamaPanelExpression(const GameLogic& gamelogic, int x,
     }
 }
 
-void PanelDrawer2D::drawPanelMark(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y, const s3d::Color& diffuse)
+void PanelDrawer2D::drawPanelMark(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y, const s3d::Color& diffuse) const
 {
     const GameFieldSetting& settings = gamelogic.GetFieldSetting();
     const s3d::String& mark_id = m_PanelSubTexTable[panel.color].mark_identifier;
@@ -185,7 +190,7 @@ void PanelDrawer2D::drawPanelMark(const GameLogic& gamelogic, const Panel& panel
     m_PanelTexture.SubTexture(mark_id).scaled(1.0, 1.0 - compress_ratio).draw(draw_pixel_x, animated_pixel_y, diffuse);
 }
 
-void PanelDrawer2D::drawPanelBeforeDelete(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y)
+void PanelDrawer2D::drawPanelBeforeDelete(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y) const
 {
     const s3d::String& back_id = m_PanelSubTexTable[panel.color].back_identifier;
     const s3d::String& mark_id = m_PanelSubTexTable[panel.color].mark_identifier;
@@ -205,7 +210,7 @@ void PanelDrawer2D::drawPanelBeforeDelete(const GameLogic& gamelogic, const Pane
     m_PanelTexture.SubTexture(mark_id).draw(draw_pixel_x, draw_pixel_y);
 }
 
-void PanelDrawer2D::drawPanelSurprisedFace(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y)
+void PanelDrawer2D::drawPanelSurprisedFace(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y) const
 {
     const s3d::String& back_id = m_PanelSubTexTable[panel.color].back_identifier;
     const s3d::String& face_id = m_PanelSubTexTable[panel.color].face_identifier;
@@ -214,7 +219,7 @@ void PanelDrawer2D::drawPanelSurprisedFace(const GameLogic& gamelogic, const Pan
     m_PanelTexture.SubTexture(face_id).draw(draw_pixel_x, draw_pixel_y);
 }
 
-void PanelDrawer2D::drawOjyamaFace(const GameLogic& gamelogic)
+void PanelDrawer2D::drawOjyamaFace(const GameLogic& gamelogic) const
 {
     const PanelContainer& pcont = gamelogic.GetPanelContainer();
     PanelContainer::OjyamaInfoVec ojyama_list = pcont.GetOjyamaInfoListOnField();
@@ -251,13 +256,13 @@ void PanelDrawer2D::drawOjyamaFace(const GameLogic& gamelogic)
     }
 }
 
-void PanelDrawer2D::drawUncompressPanel(const s3d::TextureRegion& ojyama_texture, int draw_pixel_x, int draw_pixel_y)
+void PanelDrawer2D::drawUncompressPanel(const s3d::TextureRegion& ojyama_texture, int draw_pixel_x, int draw_pixel_y) const
 {
     ojyama_texture.draw(draw_pixel_x, draw_pixel_y);
     m_OjyamaTexture.SubTexture(U"UncompressFace").draw(draw_pixel_x, draw_pixel_y);
 }
 
-s3d::TextureRegion PanelDrawer2D::getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y)
+s3d::TextureRegion PanelDrawer2D::getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y) const
 {
     const PanelContainer& pcont = gamelogic.GetPanelContainer();
     const Panel& panel = pcont.GetPanel(x, y);
@@ -310,7 +315,7 @@ s3d::TextureRegion PanelDrawer2D::getOjyamaSubTexture(const GameLogic& gamelogic
     return region;
 }
 
-int PanelDrawer2D::calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x)
+int PanelDrawer2D::calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x) const
 {
     // パネル交換中の移動位置を計算
 	int swapping_count_max = gamelogic.GetFieldSetting().SwappingCountMax();
@@ -322,7 +327,7 @@ int PanelDrawer2D::calculateDrawPos_X(const GameLogic& gamelogic, const Panel& p
 	return m_DrawSetting.BaseX + panel_pos_x + swapping_dx;
 }
 
-int PanelDrawer2D::calculateDrawPos_Y(const GameLogic& gamelogic, const Panel& panel, int y)
+int PanelDrawer2D::calculateDrawPos_Y(const GameLogic& gamelogic, const Panel& panel, int y) const
 {
     // パネル落下中の移動位置を計算
 	int fall_count_max = gamelogic.GetFieldSetting().FallCountMax();

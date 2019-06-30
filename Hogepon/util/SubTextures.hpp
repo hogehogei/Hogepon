@@ -10,7 +10,7 @@ public:
     ~SubTextures() noexcept;
 
     bool ReadSetting(const s3d::String& filepath);
-    s3d::TextureRegion SubTexture(const s3d::String& identifier_name);
+    s3d::TextureRegion SubTexture(const s3d::String& identifier_name) const;
 
 private:
 

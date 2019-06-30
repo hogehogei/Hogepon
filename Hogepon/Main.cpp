@@ -1,25 +1,24 @@
 ﻿
 # include <Siv3D.hpp> // OpenSiv3D v0.3.1
 #include "core/GameLogic.hpp"
+#include "initialize/Initialize.hpp"
 #include "view/FieldDrawer.hpp"
 #include "util/EventManager.hpp"
 #include "event/Event.hpp"
+#include "scene/Root.hpp"
 
 void Main()
 {
     RegisterAllEvent();
+    RegisterFontAssets();
 
-	PlayerID player = 1;
-	GameLogic gamelogic(player, GAMEMODE_1P_ENDLESS, U"setting/leveldata.xml");
-	FieldDrawer drawer;
+    std::unique_ptr<scene::Root> root_scene = std::make_unique<scene::Root>();
 
 	while (System::Update())
 	{
-        gamelogic.Update();
-
+        root_scene->Update();
         exlib::EventManager& event_manager = exlib::EventManager::Instance();
         event_manager.Update();
-
-        drawer.Draw(gamelogic);
+        root_scene->Draw();
 	}
 }

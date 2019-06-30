@@ -31,8 +31,9 @@ public:
 	~PanelDrawer2D() noexcept;
 
 	void SetDrawSetting(const PanelDrawer2D::DrawSetting& draw_setting);
-	void DrawPanels(const GameLogic& gamelogic);
-    void DrawEffects(const GameLogic& gamelogic);
+    void Update();
+	void DrawPanels(const GameLogic& gamelogic) const;
+    void DrawEffects(const GameLogic& gamelogic) const;
     
     static bool EventHandler(PanelDrawer2D* self, const exlib::IEvent& event);
 
@@ -40,19 +41,19 @@ private:
 
     using PanelDeleteEffectPtr = std::shared_ptr<PanelDeleteEffect>;
 
-	void drawPanels(const GameLogic& gamelogic, int x, int y);
-    void drawOjyamaBlockBack(const GameLogic& gamelogic, int x, int y);
-    void drawOjyamaPanelExpression(const GameLogic& gamelogic, int x, int y);
+	void drawPanels(const GameLogic& gamelogic, int x, int y) const;
+    void drawOjyamaBlockBack(const GameLogic& gamelogic, int x, int y) const;
+    void drawOjyamaPanelExpression(const GameLogic& gamelogic, int x, int y) const;
 
-    void drawPanelMark(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y, const s3d::Color& diffuse);
-    void drawPanelBeforeDelete(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y);
-    void drawPanelSurprisedFace(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y);
-    void drawOjyamaFace(const GameLogic& gamelogic);
-    void drawUncompressPanel(const s3d::TextureRegion& ojyama_texture, int draw_pixel_x, int draw_pixel_y);
-    s3d::TextureRegion getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y);
+    void drawPanelMark(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y, const s3d::Color& diffuse) const;
+    void drawPanelBeforeDelete(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y) const;
+    void drawPanelSurprisedFace(const GameLogic& gamelogic, const Panel& panel, int draw_pixel_x, int draw_pixel_y) const;
+    void drawOjyamaFace(const GameLogic& gamelogic) const;
+    void drawUncompressPanel(const s3d::TextureRegion& ojyama_texture, int draw_pixel_x, int draw_pixel_y) const;
+    s3d::TextureRegion getOjyamaSubTexture(const GameLogic& gamelogic, int x, int y) const;
 
-	int calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x);
-	int calculateDrawPos_Y(const GameLogic& gamelogic, const Panel& panel, int y);
+	int calculateDrawPos_X(const GameLogic& gamelogic, const Panel& panel, int x) const;
+	int calculateDrawPos_Y(const GameLogic& gamelogic, const Panel& panel, int y) const;
     void createPanelDeleteEffectTask(const PanelDeletedEvent& event);
     void eraseEffectsLifeTimeExceeded();
 

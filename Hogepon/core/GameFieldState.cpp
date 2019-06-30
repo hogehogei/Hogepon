@@ -135,10 +135,6 @@ void GameState::PanelDeleted(const Panel& panel, int xpos, int ypos)
 
 void GameState::Doujikeshi(const GameFieldSetting& setting, int doujikeshi_count)
 {
-	// 同時消しイベント送出
-    exlib::IEventPtr e = std::make_shared<DoujikeshiEvent>(doujikeshi_count);
-    exlib::EventManager::Instance().QueueEvent(e);
-
     m_Score += setting.DoujikeshiScore(doujikeshi_count);
 }
 
