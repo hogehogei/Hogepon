@@ -25,6 +25,10 @@ void RegisterFontAssets()
     // メインメニュー
     FontAsset::Register(U"MainMenuFont", 40, FileSystem::InitialPath() + U"/fonts/x14y20pxScoreDozer.ttf");
 
-    // スコアアタックレディ
+    // ゲーム開始レディ
     FontAsset::Register(U"GameStartReady", 40, FileSystem::InitialPath() + U"/fonts/x14y20pxScoreDozer.ttf");
+
+    // スコアアタック
+    FontAsset::Register(U"Score", 40, FileSystem::InitialPath() + U"/fonts/x14y20pxScoreDozer.ttf");
+    FontAsset::Register(U"ScoreAttackRemainTime", 40, FileSystem::InitialPath() + U"/fonts/x14y20pxScoreDozer.ttf");
 }

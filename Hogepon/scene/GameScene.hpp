@@ -20,7 +20,12 @@ namespace scene
 
     private:
 
+        void drawGameStartReady() const;
+        void drawScore() const;
+        void drawRemainTime() const;
+
         s3d::Timer m_ReadyTimer;
+        s3d::Timer m_RemainTimer;
         GameLogic m_Gamelogic;
         FieldDrawer m_Drawer;
     };

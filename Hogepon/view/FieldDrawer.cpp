@@ -9,7 +9,6 @@ FieldDrawer::FieldDrawer( const s3d::String& filepath )
     : 
     m_PanelDrawer2D(),
     m_CursorTexture(),
-    m_ScoreFont(40, FileSystem::SpecialFolderPath(SpecialFolder::SystemFonts) + U"x14y20pxScoreDozer.ttf"),
     m_PanelSize(0),
     m_LowerLeft_X(0),
     m_LowerLeft_Y(0),
@@ -69,9 +68,6 @@ void FieldDrawer::Draw(const GameLogic& gamelogic) const
     Rect(lowerleft_x -3, lowerleft_y, frame_width+6, m_PanelSize).draw(Color(0x00, 0xD5, 0xD5));
 
     drawCursor(gamelogic);
-
-    m_ScoreFont(U"Score").draw(400, 100, s3d::Palette::White);
-    m_ScoreFont(gamelogic.GetGameState().Score()).draw(400, 150, s3d::Palette::White);
 }
 
 PanelDrawer2D::DrawSetting FieldDrawer::DrawSetting() const

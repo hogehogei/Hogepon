@@ -9,7 +9,7 @@
 
 void Main()
 {
-    RegisterAllEvent();
+    RegisterAllEvent(); 
     RegisterFontAssets();
 
     std::unique_ptr<scene::Root> root_scene = std::make_unique<scene::Root>();

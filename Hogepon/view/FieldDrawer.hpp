@@ -34,7 +34,6 @@ private:
 
 	PanelDrawer2D m_PanelDrawer2D;
     SubTextures   m_CursorTexture;
-    const Font    m_ScoreFont;
 
     int m_PanelSize;
     int m_LowerLeft_X;
